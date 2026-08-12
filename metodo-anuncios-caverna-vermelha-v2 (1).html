@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cubo de Anúncios · Caverna Vermelha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-page: #F6EEDA;
+  --bg-sidebar: #7A231C;
+  --bg-card: #FFFFFF;
+  --bg-card-soft: #FBF3E2;
+  --border-soft: rgba(184,54,46,0.18);
+  --border-softer: rgba(184,54,46,0.10);
+  --red: #B8362E;
+  --red-deep: #7A231C;
+  --red-tint: #F4DAD5;
+  --gold: #A9852E;
+  --gold-tint: #F0E4C9;
+  --gold-on-red: #E8C9A0;
+  --copper: #8A5A34;
+  --copper-tint: #EEE0D2;
+  --obj-atrair: #E8823C; --obj-atrair-tint: #FBE4CE;
+  --obj-envolver: #D9A62A; --obj-envolver-tint: #FAEEC7;
+  --obj-relacionar: #2E9E5B; --obj-relacionar-tint: #D9F0E1;
+  --obj-ofertar: #D64545; --obj-ofertar-tint: #F7DCDC;
+  --obj-fidelizar: #8E44C4; --obj-fidelizar-tint: #EBDBF7;
+  --obj-humanizar: #3172C7; --obj-humanizar-tint: #DAE6F6;
+  --text-dark: #241A16;
+  --text-muted: rgba(43,29,24,0.80);
+  --text-faint: rgba(43,29,24,0.52);
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Montserrat', sans-serif;
+  --radius: 14px;
+  --pill-radius: 999px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-page); color: var(--text-dark);
+  font-family: var(--font-body); -webkit-font-smoothing: antialiased;
+}
+.app { display: flex; min-height: 100vh; }
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 250px; flex-shrink: 0; background: var(--bg-sidebar);
+  padding: 32px 20px;
+  position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
+}
+.brand { margin-bottom: 8px; padding: 0 6px; }
+.brand-eyebrow {
+  font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: rgba(255,255,255,0.6); font-weight: 700; margin: 0 0 6px;
+}
+.brand-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: #fff; margin: 0; line-height: 1.15;
+}
+.brand-title em { font-style: italic; color: var(--gold-on-red); }
+.sidebar-sub {
+  font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 400;
+  margin: 10px 6px 30px; line-height: 1.5;
+}
+.nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 12px;
+  border-radius: 10px; cursor: pointer; transition: all 0.18s; border: 1px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); }
+.nav-item.active { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.25); }
+.nav-num {
+  font-family: var(--font-body); font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.3); border-radius: var(--pill-radius);
+  width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-num { color: var(--red-deep); border-color: #fff; background: #fff; }
+.nav-label {
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; color: rgba(255,255,255,0.75);
+}
+.nav-item.active .nav-label { color: #fff; }
+.sidebar-footer {
+  margin-top: auto; padding: 16px 12px 0; border-top: 1px solid rgba(255,255,255,0.18);
+  font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* ---- Main ---- */
+.main { flex: 1; padding: 44px 56px 100px; max-width: 980px; }
+@media (max-width: 900px) { .main { padding: 32px 24px 80px; } .sidebar { width: 200px; } }
+
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.section-label {
+  font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 10px; font-weight: 700;
+}
+.section-title {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(26px, 3.4vw, 36px); margin: 0 0 8px; line-height: 1.15; color: var(--text-dark);
+}
+.section-title em { font-style: italic; color: var(--red); font-weight: 600; }
+.section-note { color: var(--text-muted); font-size: 13.5px; font-weight: 400; line-height: 1.65; margin: 0 0 32px; max-width: 620px; }
+
+/* ---- Método ---- */
+.method-flow { display: flex; flex-direction: column; gap: 10px; margin-bottom: 44px; }
+.method-step {
+  background: var(--bg-card); border: 1px solid var(--border-softer);
+  border-radius: var(--radius); padding: 18px 22px;
+  display: flex; align-items: flex-start; gap: 18px;
+  box-shadow: 0 1px 3px rgba(122,35,28,0.04);
+}
+.method-step .num { font-family: var(--font-display); font-size: 26px; color: var(--red-tint); min-width: 36px; line-height: 1; font-weight: 700; }
+.method-step .step-title { font-family: var(--font-display); font-size: 18px; color: var(--text-dark); margin: 0 0 4px; font-weight: 600; }
+.method-step .step-desc { font-size: 12.8px; color: var(--text-muted); font-weight: 400; line-height: 1.6; margin: 0; }
+
+.lines-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 36px; }
+@media (max-width: 760px) { .lines-grid { grid-template-columns: 1fr; } }
+.line-card {
+  background: var(--bg-card); border-radius: var(--radius); padding: 26px;
+  border-top: 3px solid var(--line-color, var(--red)); box-shadow: 0 1px 4px rgba(122,35,28,0.05);
+}
+.line-card .line-tag { display: inline-block; font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: var(--line-color, var(--red)); margin-bottom: 10px; }
+.line-card h3 { font-family: var(--font-display); font-size: 21px; margin: 0 0 4px; font-weight: 700; }
+.line-card .line-who { font-size: 12.5px; color: var(--text-muted); font-weight: 400; margin: 0 0 16px; font-style: italic; font-family: var(--font-display); }
+.line-blocks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.line-blocks li { font-size: 12.8px; color: var(--text-muted); font-weight: 400; line-height: 1.55; padding-left: 16px; position: relative; }
+.line-blocks li::before { content: '·'; position: absolute; left: 0; color: var(--line-color, var(--red)); font-weight: 700; }
+.line-blocks b { color: var(--text-dark); font-weight: 600; }
+
+.principle-box {
+  background: var(--gold-tint); border: 1px solid rgba(169,133,46,0.28);
+  border-radius: var(--radius); padding: 22px 26px; font-size: 12.8px;
+  color: #5C4A1E; font-weight: 400; line-height: 1.7;
+}
+.principle-box b { color: var(--gold); font-weight: 700; }
+
+/* ---- Forms ---- */
+.form-card {
+  background: var(--bg-card); border: 1px solid var(--border-softer);
+  border-radius: var(--radius); padding: 26px; margin-bottom: 32px;
+  box-shadow: 0 1px 4px rgba(122,35,28,0.05);
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-grid.full { grid-template-columns: 1fr; }
+.field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 6px; font-weight: 700; }
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--bg-page); border: 1px solid var(--border-soft);
+  border-radius: 8px; color: var(--text-dark); font-family: var(--font-body);
+  font-size: 13px; padding: 11px 13px; font-weight: 400;
+}
+.field textarea { resize: vertical; min-height: 64px; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--red); background: #fff; }
+.btn { font-family: var(--font-body); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-radius: var(--pill-radius); padding: 12px 24px; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-deep); }
+.btn-danger-ghost { background: transparent; border: 1px solid rgba(184,54,46,0.3); color: var(--red); font-size: 10px; padding: 6px 12px; border-radius: var(--pill-radius); cursor: pointer; font-weight: 600; }
+.btn-danger-ghost:hover { background: var(--red-tint); }
+
+/* ---- Copy library ---- */
+.copy-item {
+  background: var(--bg-card); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 12px;
+  border-left: 3px solid var(--line-color, var(--red)); box-shadow: 0 1px 4px rgba(122,35,28,0.05);
+}
+.copy-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+.copy-item-tags { display: flex; gap: 8px; align-items: center; }
+.pill { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; padding: 5px 11px; border-radius: var(--pill-radius); }
+.pill-linha { background: var(--red-tint); color: var(--red-deep); }
+.pill-status { background: rgba(43,33,29,0.06); color: var(--text-muted); }
+.pill-status.aprovado { background: #E4EEDC; color: #4E7A34; }
+.pill-status.gravado { background: var(--gold-tint); color: #7A611E; }
+.copy-item-body { font-size: 13px; color: var(--text-muted); font-weight: 400; line-height: 1.6; }
+.copy-item-body b { color: var(--text-dark); font-weight: 600; }
+.copy-item-body .field-line { margin-bottom: 6px; }
+
+/* ---- Tables ---- */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th { text-align: left; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); font-weight: 700; padding: 12px; border-bottom: 1px solid var(--border-soft); }
+.data-table td { padding: 13px 12px; border-bottom: 1px solid rgba(43,33,29,0.06); color: var(--text-muted); font-weight: 400; vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.status-badge { font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 4px 11px; border-radius: var(--pill-radius); display: inline-block; }
+.status-ideia { background: rgba(43,33,29,0.06); color: var(--text-faint); }
+.status-roteirizado { background: var(--red-tint); color: var(--red-deep); }
+.status-gravado { background: var(--gold-tint); color: #7A611E; }
+.status-editado { background: #FBE3C9; color: #8A5A1E; }
+.status-no-ar { background: #E4EEDC; color: #4E7A34; }
+.table-wrap { overflow-x: auto; margin-bottom: 20px; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); }
+.data-table { min-width: 640px; }
+.empty-state { text-align: center; padding: 44px 20px; color: var(--text-faint); font-size: 13px; font-weight: 400; font-style: italic; font-family: var(--font-display); background: var(--bg-card); border-radius: var(--radius); border: 1px dashed var(--border-soft); }
+
+/* KPIs */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 30px; }
+@media (max-width: 700px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+.kpi-card { background: var(--bg-card); border-radius: var(--radius); padding: 20px 16px; text-align: center; border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); }
+.kpi-num { font-family: var(--font-display); font-size: 28px; color: var(--red); font-weight: 700; }
+.kpi-label { font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); margin-top: 4px; font-weight: 600; }
+
+/* ---- Tópicos ---- */
+.topicos-columns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 8px; }
+@media (max-width: 860px) { .topicos-columns { grid-template-columns: 1fr; } }
+.topico-col { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); padding: 18px 18px 6px; }
+.topico-col-header { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 15px; margin-bottom: 12px; color: var(--text-dark); }
+.topico-col-header .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.topico-toggle-btn { margin-left: auto; background: transparent; border: 1px solid var(--border-soft); color: var(--text-faint); width: 22px; height: 22px; border-radius: 50%; font-size: 10px; cursor: pointer; flex-shrink: 0; }
+.topico-toggle-btn:hover { border-color: var(--red); color: var(--red); }
+.topico-paste.hidden-paste { display: none; }
+.topico-paste.hidden-paste + .btn-col-distribuir { display: none; }
+.btn-col-distribuir {
+  width: 100%; background: transparent; border: 1.5px solid var(--cc, var(--red)); color: var(--cc, var(--red));
+  font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: var(--pill-radius); padding: 8px 0; cursor: pointer; margin-bottom: 14px; transition: all 0.15s;
+}
+.btn-col-distribuir:hover { background: var(--cc, var(--red)); color: #fff; }
+.topico-paste { width: 100%; background: var(--bg-page); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text-dark); font-family: var(--font-body); font-size: 11.5px; padding: 10px 11px; font-weight: 400; min-height: 80px; resize: vertical; margin-bottom: 12px; }
+.topico-paste:focus { outline: none; border-color: var(--red); background: #fff; }
+.topico-row { padding: 8px 0; border-bottom: 1px solid rgba(43,33,29,0.06); }
+.topico-row:last-child { border-bottom: none; }
+.topico-row-top { display: flex; align-items: center; gap: 10px; }
+.topico-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.topico-nome { font-size: 12.5px; font-weight: 600; color: var(--text-dark); flex: 1; letter-spacing: 0.01em; }
+.topico-info-btn { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border-soft); background: transparent; color: var(--text-faint); font-size: 10px; cursor: pointer; flex-shrink: 0; font-weight: 700; }
+.topico-info-btn:hover { border-color: var(--red); color: var(--red); }
+.topico-detail { font-size: 11.5px; color: var(--text-muted); background: var(--bg-page); border-radius: 8px; padding: 10px 12px; margin: 8px 0 4px; line-height: 1.6; display: none; }
+.topico-detail.show { display: block; }
+.topico-detail b { color: var(--text-dark); }
+
+/* ---- Banco de Modelos ---- */
+.modelo-card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); padding: 22px 24px; margin-bottom: 16px; border-left: 3px solid var(--mc, var(--red)); }
+.modelo-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.modelo-nome { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0 0 4px; }
+.modelo-meta { font-size: 11px; color: var(--text-faint); font-weight: 500; }
+.modelo-meta b { color: var(--text-muted); }
+.modelo-quando { font-size: 12.5px; color: var(--text-muted); font-weight: 400; line-height: 1.6; margin: 10px 0 14px; }
+.modelo-prompt-box { background: var(--bg-page); border: 1px solid var(--border-soft); border-radius: 8px; padding: 14px 16px; font-size: 11px; color: var(--text-muted); font-family: var(--font-body); white-space: pre-wrap; line-height: 1.6; max-height: 260px; overflow-y: auto; }
+.copy-prompt-btn { background: var(--mc, var(--red)); color: #fff; border: none; border-radius: var(--pill-radius); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 16px; cursor: pointer; flex-shrink: 0; }
+.copy-prompt-btn:hover { opacity: 0.88; }
+
+/* ---- Etapa pills (seleção de objetivo) ---- */
+.etapa-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.etapa-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #fff; border: 1.5px solid var(--ec); color: var(--ec);
+  font-family: var(--font-body); font-size: 12px; font-weight: 600;
+  padding: 8px 16px; border-radius: var(--pill-radius); cursor: pointer;
+  transition: all 0.15s;
+}
+.etapa-pill .etapa-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ec); flex-shrink: 0; }
+.etapa-pill:hover { background: var(--ect); }
+.etapa-pill.active { background: var(--ec); color: #fff; }
+.etapa-pill.active .etapa-dot { background: #fff; }
+
+/* ---- Temas ---- */
+.tema-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(43,33,29,0.06); }
+.tema-row:last-of-type { border-bottom: none; }
+.tema-row-body { flex: 1; }
+.tema-ref { font-size: 11px; color: var(--text-faint); font-weight: 600; margin: 0 0 6px; }
+.tema-input { width: 100%; background: var(--bg-page); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text-dark); font-family: var(--font-body); font-size: 12.5px; padding: 9px 12px; font-weight: 400; }
+.tema-input:focus { outline: none; border-color: var(--red); background: #fff; }
+
+/* ---- Produção (grid por objetivo) ---- */
+.prod-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .prod-grid { grid-template-columns: 1fr; } }
+.prod-obj-card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); padding: 20px; cursor: pointer; transition: transform 0.15s; border-top: 3px solid var(--oc, var(--red)); }
+.prod-obj-card:hover { transform: translateY(-2px); }
+.prod-obj-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.prod-obj-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--oc, var(--red)); flex-shrink: 0; }
+.prod-obj-nome { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--text-dark); }
+.prod-obj-count { font-size: 11px; color: var(--text-faint); margin: 0 0 12px; }
+.prod-obj-progress-row { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-faint); margin-bottom: 4px; }
+.prod-obj-bar { height: 6px; background: var(--bg-page); border-radius: 999px; overflow: hidden; margin-bottom: 4px; }
+.prod-obj-bar-fill { height: 100%; background: var(--oc, var(--red)); border-radius: 999px; }
+.prod-obj-pct { font-size: 10.5px; color: var(--text-faint); text-align: right; }
+
+.prod-breadcrumb { font-size: 11px; color: var(--text-faint); margin-bottom: 16px; }
+.prod-breadcrumb a { color: var(--red); cursor: pointer; font-weight: 600; text-decoration: none; }
+.prod-breadcrumb a:hover { text-decoration: underline; }
+
+.estoque-card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); padding: 18px 20px; margin-bottom: 12px; cursor: pointer; border-left: 3px solid var(--oc, var(--red)); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.estoque-card:hover { background: var(--bg-card-soft); }
+.estoque-nome { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-dark); margin: 0 0 2px; }
+.estoque-meta { font-size: 11px; color: var(--text-faint); }
+
+.item-row { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); padding: 16px 18px; margin-bottom: 10px; }
+.item-row-top { display: flex; align-items: flex-start; gap: 12px; }
+.item-tema { font-size: 13px; color: var(--text-dark); font-weight: 600; line-height: 1.5; flex: 1; }
+.item-tema .eixo-tag { font-weight: 600; color: var(--text-faint); font-size: 11px; }
+.item-ref { font-size: 10.5px; color: var(--text-faint); margin: 4px 0 0; }
+.item-preview { font-size: 11.5px; color: var(--text-muted); font-style: italic; margin: 6px 0 0; line-height: 1.5; }
+.item-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+.item-status-select { font-size: 10.5px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border-soft); background: var(--bg-page); color: var(--text-muted); font-family: var(--font-body); font-weight: 600; }
+.ficha-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(36,26,22,0.6); z-index: 200; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.ficha-modal-overlay.show { display: flex; }
+.ficha-modal-panel { background: var(--bg-page); border-radius: 18px; max-width: 640px; width: 100%; padding: 28px 30px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); position: relative; }
+.ficha-modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-soft); }
+.ficha-modal-title { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--text-dark); margin: 0; line-height: 1.3; }
+.ficha-modal-close { background: transparent; border: 1px solid var(--border-soft); color: var(--text-faint); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+.ficha-modal-close:hover { border-color: var(--red); color: var(--red); }
+.ficha-modal-body { font-size: 12px; }
+
+/* ---- Montagem do Cubo (linhas de estoque fechadas) ---- */
+.cubo-row { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-softer); box-shadow: 0 1px 4px rgba(122,35,28,0.05); padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+.cubo-row-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cubo-row-body { flex: 1; }
+.cubo-row-nome { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text-dark); margin: 0; }
+.cubo-row-meta { font-size: 11px; color: var(--text-faint); margin: 2px 0 0; }
+.cubo-row-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.btn-produzir { background: transparent; border: 1.5px solid var(--rc, var(--red)); color: var(--rc, var(--red)); font-family: var(--font-body); font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: var(--pill-radius); cursor: pointer; }
+.btn-produzir:hover { background: var(--rc, var(--red)); color: #fff; }
+.btn-excluir-x { background: transparent; border: 1px solid var(--border-soft); color: var(--text-faint); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 13px; }
+.btn-excluir-x:hover { border-color: var(--red); color: var(--red); }
+
+/* ---- CTAs ---- */
+.cta-item { background: var(--bg-card); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 10px; border-left: 3px solid var(--cc, var(--red)); box-shadow: 0 1px 4px rgba(122,35,28,0.05); }
+.cta-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; flex-wrap: wrap; }
+.cta-texto { font-size: 13px; color: var(--text-dark); font-weight: 500; line-height: 1.5; }
+.cta-obs { font-size: 11px; color: var(--text-faint); font-style: italic; margin-top: 4px; }
+
+/* ---- Formatos ---- */
+.formato-item { background: var(--bg-card); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 10px; border-left: 3px solid var(--gold); box-shadow: 0 1px 4px rgba(122,35,28,0.05); }
+.formato-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; }
+.formato-nome { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-dark); margin: 0; }
+.formato-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+
+/* ---- Montador de prompt (Roteiro de Anúncio) ---- */
+.montador-box { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-soft); display: none; }
+.montador-box.show { display: block; }
+
+/* ---- Checklist de temas (gerador de copy) ---- */
+.tema-check-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: 8px; background: var(--bg-page); margin-bottom: 6px; }
+.tema-check-row input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; accent-color: var(--red); width: 15px; height: 15px; cursor: pointer; }
+.tema-check-label { flex: 1; font-size: 12.5px; color: var(--text-dark); font-weight: 500; line-height: 1.45; cursor: pointer; }
+.tema-check-meta { font-size: 10.5px; color: var(--text-faint); font-weight: 600; margin-top: 2px; }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--text-dark); border: 1px solid var(--red); color: #fff;
+  padding: 12px 24px; border-radius: var(--pill-radius); font-size: 12px; font-weight: 500;
+  opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ---- Preview de PDF (modal visível antes de imprimir) ---- */
+.pdf-preview-overlay { display: none; position: fixed; inset: 0; background: rgba(36,26,22,0.6); z-index: 250; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.pdf-preview-overlay.show { display: flex; }
+.pdf-preview-panel { background: #fff; border-radius: 12px; max-width: 620px; width: 100%; padding: 40px 44px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); position: relative; }
+.pdf-preview-toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+.print-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #B8362E; font-weight: 700; margin: 0 0 6px; }
+.print-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 700; color: #241A16; margin: 0 0 4px; }
+.print-meta { font-size: 11px; color: #6b5d55; margin: 0 0 24px; }
+.print-block-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #B8362E; font-weight: 700; margin: 20px 0 6px; }
+.print-block-text { font-size: 14px; color: #241A16; line-height: 1.7; white-space: pre-wrap; }
+.pdf-preview-hint { font-size: 10.5px; color: #9a8b82; margin-top: 24px; padding-top: 14px; border-top: 1px solid #eee; }
+
+@media print {
+  body * { visibility: hidden; }
+  #pdf-preview-content, #pdf-preview-content * { visibility: visible; }
+  .pdf-preview-toolbar, .pdf-preview-hint { display: none !important; }
+  .pdf-preview-overlay { position: absolute; inset: auto; background: none; padding: 0; }
+  .pdf-preview-panel { box-shadow: none; max-width: 100%; padding: 20px 30px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="sidebar">
+    <div class="brand">
+      <p class="brand-eyebrow">Caverna Vermelha</p>
+      <h1 class="brand-title">Cubo de <em>Anúncios</em></h1>
+    </div>
+    <p class="sidebar-sub">Método, copy, produção e resultado do funil de captação — tudo num lugar só.</p>
+    <ul class="nav-list">
+      <li class="nav-item active" data-tab="metodo"><span class="nav-num">01</span><span class="nav-label">Método</span></li>
+      <li class="nav-item" data-tab="topicos"><span class="nav-num">02</span><span class="nav-label">Tópicos</span></li>
+      <li class="nav-item" data-tab="temas"><span class="nav-num">03</span><span class="nav-label">Temas</span></li>
+      <li class="nav-item" data-tab="producao"><span class="nav-num">04</span><span class="nav-label">Estoque de Anúncios</span></li>
+      <li class="nav-item" data-tab="ctas"><span class="nav-num">05</span><span class="nav-label">CTAs</span></li>
+      <li class="nav-item" data-tab="formatos"><span class="nav-num">06</span><span class="nav-label">Formatos</span></li>
+      <li class="nav-item" data-tab="modelos"><span class="nav-num">07</span><span class="nav-label">Roteiro de Anúncio</span></li>
+      <li class="nav-item" data-tab="resultados"><span class="nav-num">08</span><span class="nav-label">Anúncios Testados</span></li>
+    </ul>
+    <div class="sidebar-footer">Caverna das Guerreiras · Jade Torres</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ================= MÉTODO ================= -->
+    <div class="panel active" id="panel-metodo">
+      <p class="section-label">Referência</p>
+      <h2 class="section-title">As <em>6 etapas</em> dos tráfego</h2>
+      <p class="section-note">Adaptado da estrutura da consultoria de tráfego, com um ajuste: o CTA nunca é "comprar" — é assistir o vídeo e preencher a qualificação. O anúncio qualifica curiosidade, o funil qualifica compra.</p>
+
+      <div class="method-flow" id="method-flow"></div>
+
+      <p class="section-label" style="margin-top:8px;">Os dois objetivos</p>
+      <h2 class="section-title">Anúncio Direto <em>x</em> Anúncio de Jornada</h2>
+      <p class="section-note">Seu público está nos dois estágios — quem já sabe que precisa sistematizar e quem ainda não decidiu que agora é a hora. Os dois objetivos rodam em paralelo, nunca um no lugar do outro.</p>
+
+      <div class="lines-grid" id="lines-grid"></div>
+
+      <div class="principle-box">
+        <b>Regra de volume:</b> não se escolhe o "melhor anúncio" antes de rodar. Sobem várias variações juntas, na mesma campanha, e o algoritmo decide onde investir. O papel de vocês é ter volume de narrativa boa — o papel da plataforma é distribuir o orçamento.
+      </div>
+    </div>
+
+    <!-- ================= TÓPICOS ================= -->
+    <div class="panel" id="panel-topicos">
+      <p class="section-label">Cubo Mágico de Anúncios</p>
+      <h2 class="section-title">Tópicos <em>estruturais</em></h2>
+      <p class="section-note">Cola os 36 tópicos do seu Cubo Mágico de Anúncios — 12 por conjunto — e eles ficam distribuídos aqui, prontos pra alimentar os temas e os estoques de anúncio.</p>
+
+      <details style="margin-bottom:16px;">
+        <summary style="cursor:pointer; font-size:11px; color:var(--text-faint); letter-spacing:0.05em; text-transform:uppercase; font-weight:600;">Formato esperado de cada bloco colado</summary>
+        <pre style="background:var(--bg-card); border:1px solid var(--border-soft); border-radius:8px; padding:12px 14px; font-size:11px; color:var(--text-muted); font-family:var(--font-body); white-space:pre-wrap; margin:10px 0 0;">1. **Autoridade Invisível**
+   - Definição: O valor que a mulher já tem, mas ainda não conseguiu comunicar com força.
+   - Fala sobre: reconhecimento, bagagem, maturidade, posicionamento
+   - Pergunta central: "Por que mulheres tão preparadas ainda se sentem invisíveis no digital?"
+2. **História-Método**
+   - Definição: ...</pre>
+        <p style="font-size:11px; color:var(--text-faint); margin:8px 0 0;">Cola direto o arquivo exportado pelo Cubo Mágico de Anúncios — não precisa editar nada, o parser já lê esse formato.</p>
+      </details>
+
+      <div class="topicos-columns" id="topicos-grid">
+        <div class="topico-col">
+          <div class="topico-col-header">
+            <span class="dot" style="background:var(--red);"></span>Assunto Principal
+            <button class="topico-toggle-btn" onclick="toggleColagem('assunto')" title="Colar novos tópicos">✎</button>
+          </div>
+          <textarea id="paste-assunto" class="topico-paste" placeholder="Cola aqui os 12 tópicos do Assunto Principal"></textarea>
+          <button class="btn-col-distribuir" style="--cc:var(--red);" onclick="distribuirColuna('assunto')">Distribuir</button>
+          <div id="list-assunto"></div>
+        </div>
+        <div class="topico-col">
+          <div class="topico-col-header">
+            <span class="dot" style="background:var(--gold);"></span>Persona
+            <button class="topico-toggle-btn" onclick="toggleColagem('persona')" title="Colar novos tópicos">✎</button>
+          </div>
+          <textarea id="paste-persona" class="topico-paste" placeholder="Cola aqui os 12 tópicos da Persona"></textarea>
+          <button class="btn-col-distribuir" style="--cc:var(--gold);" onclick="distribuirColuna('persona')">Distribuir</button>
+          <div id="list-persona"></div>
+        </div>
+        <div class="topico-col">
+          <div class="topico-col-header">
+            <span class="dot" style="background:var(--copper);"></span>Conexão
+            <button class="topico-toggle-btn" onclick="toggleColagem('conexao')" title="Colar novos tópicos">✎</button>
+          </div>
+          <textarea id="paste-conexao" class="topico-paste" placeholder="Cola aqui os 12 tópicos de Conexão Emocional"></textarea>
+          <button class="btn-col-distribuir" style="--cc:var(--copper);" onclick="distribuirColuna('conexao')">Distribuir</button>
+          <div id="list-conexao"></div>
+        </div>
+      </div>
+
+      <p id="topicos-status" style="font-size:11.5px; color:var(--text-faint); margin:16px 2px 0; display:none;"></p>
+    </div>
+
+    <!-- ================= TEMAS ================= -->
+    <div class="panel" id="panel-temas">
+      <p class="section-label">Cubo Mágico de Anúncios</p>
+      <h2 class="section-title">Montar o <em>estoque</em></h2>
+      <p class="section-note">Escolhe o objetivo — o conjunto de tópicos certo é indicado sozinho. Copia o prompt, cola na sua IA, e traz o resultado de volta pra distribuir os 12 temas.</p>
+
+      <div class="form-card">
+        <div class="field" style="margin-bottom:16px;">
+          <label>Confirme o objetivo</label>
+          <div class="etapa-pills" id="tema-etapa-pills">
+            <button type="button" class="etapa-pill active" data-etapa="Atrair" style="--ec:var(--obj-atrair); --ect:var(--obj-atrair-tint);"><span class="etapa-dot"></span>Atrair</button>
+            <button type="button" class="etapa-pill" data-etapa="Envolver" style="--ec:var(--obj-envolver); --ect:var(--obj-envolver-tint);"><span class="etapa-dot"></span>Envolver</button>
+            <button type="button" class="etapa-pill" data-etapa="Relacionar" style="--ec:var(--obj-relacionar); --ect:var(--obj-relacionar-tint);"><span class="etapa-dot"></span>Relacionar</button>
+            <button type="button" class="etapa-pill" data-etapa="Ofertar" style="--ec:var(--obj-ofertar); --ect:var(--obj-ofertar-tint);"><span class="etapa-dot"></span>Ofertar</button>
+            <button type="button" class="etapa-pill" data-etapa="Fidelizar" style="--ec:var(--obj-fidelizar); --ect:var(--obj-fidelizar-tint);"><span class="etapa-dot"></span>Fidelizar</button>
+            <button type="button" class="etapa-pill" data-etapa="Humanizar" style="--ec:var(--obj-humanizar); --ect:var(--obj-humanizar-tint);"><span class="etapa-dot"></span>Humanizar</button>
+          </div>
+        </div>
+        <p style="font-size:11px; color:var(--text-faint); margin:0 0 16px;">Conjunto de tópicos indicado: <b id="tema-conjunto-indicado" style="color:var(--text-dark);">Persona</b></p>
+        <div class="form-grid">
+          <div class="field">
+            <label>Formato</label>
+            <select id="tema-formato">
+              <option value="Reels">Reels (vídeo)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Nome do estoque</label>
+            <input id="tema-nome-estoque" placeholder="Ex: Reels Atração — Ago 2026">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="tema-gerar-btn" onclick="prepararPromptTemas()" style="margin-top:6px;">1. Gerar prompt</button>
+        <p id="tema-gen-status" style="font-size:11.5px; color:var(--text-faint); margin:10px 2px 0; display:none;"></p>
+
+        <div id="tema-prompt-box" style="display:none; margin-top:16px;">
+          <p class="modelo-meta" style="margin-bottom:8px;">Copia este prompt e cola na sua IA (ChatGPT, Claude, etc):</p>
+          <div class="modelo-prompt-box" id="tema-prompt-texto"></div>
+          <button class="copy-prompt-btn" style="--mc:var(--red); margin-top:10px;" onclick="copiarPromptTemas()">Copiar prompt</button>
+
+          <div class="field" style="margin-top:20px;">
+            <label>2. Cola aqui o resultado da IA (JSON)</label>
+            <textarea id="tema-resultado-colado" style="min-height:100px;" placeholder='[{"numero":1,"tema":"..."},{"numero":2,"tema":"..."}, ...]'></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="distribuirEstoqueTemas()">3. Distribuir estoque</button>
+        </div>
+      </div>
+
+      <div style="margin-top:32px;">
+        <p class="section-label">Estoques</p>
+        <h2 class="section-title" style="font-size:22px;">Montagem do <em>Cubo</em></h2>
+        <div id="montagem-cubo"></div>
+      </div>
+    </div>
+
+    <!-- ================= BANCO DE MODELOS ================= -->
+    <div class="panel" id="panel-modelos">
+      <p class="section-label">Referência</p>
+      <h2 class="section-title">Roteiro de <em>Anúncio</em></h2>
+      <p class="section-note">Um prompt fixo por etapa, com estrutura, duração e regras obrigatórias. É isso que alimenta a geração de copy — não um prompt genérico.</p>
+
+      <div id="modelos-cards"></div>
+    </div>
+
+    <!-- ================= CTAS ================= -->
+    <div class="panel" id="panel-ctas">
+      <p class="section-label">Banco</p>
+      <h2 class="section-title">CTAs <em>oficiais</em></h2>
+      <p class="section-note">CTAs testados e aprovados, organizados por objetivo. Reaproveita em vez de reinventar toda vez — cada objetivo pede um tipo de chamada diferente.</p>
+
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Objetivo</label>
+            <select id="cta-etapa">
+              <option value="Geral">Geral (qualquer objetivo)</option>
+              <option value="Atrair">Atrair</option>
+              <option value="Envolver">Envolver</option>
+              <option value="Relacionar">Relacionar</option>
+              <option value="Ofertar">Ofertar</option>
+              <option value="Fidelizar">Fidelizar</option>
+              <option value="Humanizar">Humanizar</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Quando usar (opcional)</label>
+            <input id="cta-obs" placeholder="Ex: quando já tem prova social forte no roteiro">
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div class="field">
+            <label>Texto do CTA</label>
+            <textarea id="cta-texto" placeholder="Ex: Clica no link aqui embaixo e garante agora." style="min-height:50px;"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="salvarCta()">Adicionar CTA</button>
+      </div>
+
+      <div id="ctas-list"></div>
+    </div>
+
+    <!-- ================= FORMATOS ================= -->
+    <div class="panel" id="panel-formatos">
+      <p class="section-label">Banco</p>
+      <h2 class="section-title">Formatos de <em>anúncio</em></h2>
+      <p class="section-note">Os formatos oficiais abaixo já vêm prontos e não podem ser excluídos. Use o espaço abaixo pra criar os seus formatos autorais — esses você edita e apaga quando quiser.</p>
+
+      <div class="form-card">
+        <div class="form-grid full">
+          <div class="field">
+            <label>Nome do formato autoral</label>
+            <input id="formato-nome" placeholder="Ex: Carrossel de bastidores">
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div class="field">
+            <label>Regras desse formato (o que entra no prompt)</label>
+            <textarea id="formato-prompt" placeholder="Ex: Vídeo vertical, até 90 segundos, gravado com celular, fala direta pra câmera, sem cortes complexos." style="min-height:60px;"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="salvarFormato()">Adicionar formato autoral</button>
+      </div>
+
+      <div id="formatos-list"></div>
+    </div>
+
+    <!-- ================= PRODUÇÃO ================= -->
+    <div class="panel" id="panel-producao">
+      <p class="section-label">Controle</p>
+      <h2 class="section-title">Estoque de <em>Anúncios</em></h2>
+      <p class="section-note">Clica num objetivo pra ver os estoques e acompanhar o progresso. Uma linha editorial equilibrada trabalha os 6 objetivos juntos.</p>
+
+      <div id="prod-breadcrumb" class="prod-breadcrumb" style="display:none;"></div>
+      <div id="prod-grid" class="prod-grid"></div>
+      <div id="prod-estoques" style="display:none;"></div>
+      <div id="prod-itens" style="display:none;"></div>
+    </div>
+
+    <!-- ================= RESULTADOS ================= -->
+    <div class="panel" id="panel-resultados">
+      <p class="section-label">Performance</p>
+      <h2 class="section-title">Anúncios <em>testados</em></h2>
+      <p class="section-note">Dado real de cada anúncio no ar — gasto, alcance e lead gerado. Sem estimativa, só o que a campanha entregou.</p>
+
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Anúncio</label>
+            <input id="res-nome" placeholder="Ex: AnuncioDireto-01-cozinha">
+          </div>
+          <div class="field">
+            <label>Gasto (R$)</label>
+            <input id="res-gasto" type="number" step="0.01" placeholder="0,00">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Impressões</label>
+            <input id="res-impressoes" type="number" placeholder="0">
+          </div>
+          <div class="field">
+            <label>Cliques</label>
+            <input id="res-cliques" type="number" placeholder="0">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Leads gerados</label>
+            <input id="res-leads" type="number" placeholder="0">
+          </div>
+          <div class="field">
+            <label>Data</label>
+            <input id="res-data" type="date">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="salvarResultado()">Registrar resultado</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="res-table">
+          <thead>
+            <tr><th>Anúncio</th><th>Gasto</th><th>Impressões</th><th>Cliques</th><th>Leads</th><th>Custo/Lead</th><th>CTR</th><th></th></tr>
+          </thead>
+          <tbody id="res-tbody"></tbody>
+        </table>
+      </div>
+      <div id="res-empty" class="empty-state" style="display:none;">Nenhum resultado registrado ainda.</div>
+    </div>
+
+  </main>
+</div>
+
+<div class="ficha-modal-overlay" id="ficha-modal-overlay" onclick="if(event.target===this) fecharFichaTecnica()">
+  <div class="ficha-modal-panel">
+    <div class="ficha-modal-header">
+      <p class="ficha-modal-title" id="ficha-modal-title">Ficha Técnica</p>
+      <button class="ficha-modal-close" onclick="fecharFichaTecnica()">✕</button>
+    </div>
+    <div class="ficha-modal-body" id="ficha-modal-body"></div>
+  </div>
+</div>
+
+<div class="pdf-preview-overlay" id="pdf-preview-overlay" onclick="if(event.target===this) fecharPreviewPdf()">
+  <div class="pdf-preview-panel">
+    <div class="pdf-preview-toolbar">
+      <button class="btn btn-primary" onclick="imprimirPreviewPdf()">Baixar / Imprimir PDF</button>
+      <button class="btn-danger-ghost" style="border-color:var(--border-soft); color:var(--text-muted);" onclick="fecharPreviewPdf()">Fechar</button>
+    </div>
+    <div id="pdf-preview-content"></div>
+    <p class="pdf-preview-hint">Se o botão não abrir a caixa de impressão, usa Ctrl+P (Cmd+P no Mac) com essa tela aberta, e escolhe "Salvar como PDF".</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- Sidebar nav ----------
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('panel-' + item.dataset.tab).classList.add('active');
+  });
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copiarTexto(texto) {
+  function fallbackCopy() {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      ta.style.top = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) showToast('Prompt copiado.');
+      else showToast('Não consegui copiar automaticamente — seleciona o texto e copia manualmente.');
+    } catch (e) {
+      showToast('Não consegui copiar automaticamente — seleciona o texto e copia manualmente.');
+    }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texto).then(() => showToast('Prompt copiado.')).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
+
+document.querySelectorAll('#etapa-pills .etapa-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#etapa-pills .etapa-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTemasChecklistGen(btn.dataset.etapa);
+  });
+});
+
+const CONJUNTO_POR_ETAPA = { Atrair: 'Persona', Envolver: 'Assunto Principal', Relacionar: 'Conexão Emocional', Ofertar: 'Assunto Principal', Fidelizar: 'Persona', Humanizar: 'Persona' };
+
+document.querySelectorAll('#tema-etapa-pills .etapa-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tema-etapa-pills .etapa-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tema-conjunto-indicado').textContent = CONJUNTO_POR_ETAPA[btn.dataset.etapa];
+  });
+});
+
+// ---------- Método (static reference) ----------
+const steps = [
+  { n: '01', title: 'Persona', desc: 'Quem compra, dor real, idade, momento de vida — dado da base de vendas real, não estimativa.' },
+  { n: '02', title: 'Objetivo Anúncio Direto', desc: 'Anúncio perene para quem já sabe que precisa sistematizar. Sem enrolação, sem narrativa longa.' },
+  { n: '03', title: 'Objetivo Anúncio de Jornada', desc: 'História real (sua ou de aluna) indo em dor + desejo, para tirar da inércia quem ainda não decidiu agir.' },
+  { n: '04', title: 'Volume', desc: 'Gravar em lote — uma safra por vez. Varia cenário e narrativa, não feeling do que "vai bombar".' },
+  { n: '05', title: 'Subir junto', desc: 'Todos os anúncios da safra na mesma campanha. Não pré-seleciona o favorito — o algoritmo decide onde investir.' },
+  { n: '06', title: 'Testar sem parar', desc: 'Página, depois oferta e preço. Sempre há algo a melhorar — a safra seguinte nasce do que a anterior provou.' },
+];
+document.getElementById('method-flow').innerHTML = steps.map(s => `
+  <div class="method-step">
+    <span class="num">${s.n}</span>
+    <div>
+      <p class="step-title">${s.title}</p>
+      <p class="step-desc">${s.desc}</p>
+    </div>
+  </div>
+`).join('');
+
+const linesData = [
+  {
+    color: 'var(--red)', tag: 'Objetivo 1', title: 'Anúncio Direto', who: 'Para quem já sabe que precisa sistematizar',
+    blocks: [
+      '<b>Gancho de identificação</b> — nomeia a situação sem rodeio',
+      '<b>A virada</b> — o que muda ao sistematizar (estrutura, não conteúdo)',
+      '<b>Prova de mecanismo</b> — por que funciona, sem case genérico',
+      '<b>CTA de baixo atrito</b> — assistir o vídeo, não comprar'
+    ]
+  },
+  {
+    color: 'var(--gold)', tag: 'Objetivo 2', title: 'Anúncio de Jornada', who: 'Para quem ainda não sente urgência',
+    blocks: [
+      '<b>Contexto reconhecível</b> — a rotina de atendimento que trava',
+      '<b>Ponto de virada</b> — o momento em que percebeu o teto do 1:1',
+      '<b>O que mudou</b> — a mudança de operação, não resultado genérico',
+      '<b>Dor de quem não decide</b> — objeção real: "preciso de mais resultado antes"',
+      '<b>CTA</b> — assistir o vídeo pra entender a virada'
+    ]
+  }
+];
+document.getElementById('lines-grid').innerHTML = linesData.map(l => `
+  <div class="line-card" style="--line-color:${l.color}">
+    <span class="line-tag">${l.tag}</span>
+    <h3>${l.title}</h3>
+    <p class="line-who">${l.who}</p>
+    <ul class="line-blocks">${l.blocks.map(b => `<li>${b}</li>`).join('')}</ul>
+  </div>
+`).join('');
+
+// ---------- Banco de modelos (referência estática, com prompt completo) ----------
+const modelos = [
+  {
+    id: 'ofertar', nome: 'Anúncio Direto Reels Ofertar', objetivo: 'Direto', etapa: 'Ofertar',
+    conjunto: 'Assunto Principal', duracao: '30 a 45 segundos',
+    quandoUsar: 'Para audiência que já te conhece e está próxima da decisão de compra. Não precisa de narrativa complexa — só clareza, diferencial e CTA direto. Ideal para base de seguidores e remarketing.',
+    prompt: `Crie um roteiro de anúncio em vídeo (reels) no modelo ANÚNCIO DIRETO para o tópico e tema indicados.
+
+DURAÇÃO: 30 a 45 segundos.
+
+ESTRUTURA OBRIGATÓRIA:
+ABERTURA (5s): Uma frase de impacto que nomeia diretamente o resultado ou a transformação que o método entrega — sem rodeios.
+DIFERENCIAL (10-15s): O que torna esse método único. Por que ele funciona quando outros não funcionaram. Use o tópico como âncora do argumento.
+PROVA (5-10s): Uma frase curta de resultado — pode ser dado, conquista de aluna ou transformação concreta.
+CTA (5-10s): Chamada direta para ação. Ex: "Clica no link aqui embaixo e garante agora."
+
+REGRAS:
+- Tom direto, sem enrolação. Cada segundo conta.
+- Não conte história — apresente o produto com clareza e confiança.
+- O nome do método/produto deve aparecer ao menos uma vez.
+- Finalize sempre com CTA claro e único.
+- Linguagem da criadora — não genérica.`
+  },
+  {
+    id: 'atrair', nome: 'Anúncio Geração de Valor Reels Atrair', objetivo: 'Jornada', etapa: 'Atrair',
+    conjunto: 'Persona', duracao: '60 a 90 segundos',
+    quandoUsar: 'Para audiência fria que ainda não está no movimento de compra. Espelha a dor ou o desejo da persona sem entregar a solução — gera identificação e desperta curiosidade. Não vende nada diretamente.',
+    prompt: `Crie um roteiro de anúncio em vídeo (reels) no modelo GERAÇÃO DE VALOR para o objetivo ATRAIR, usando o tópico e tema indicados.
+
+DURAÇÃO: 60 a 90 segundos.
+
+ESTRUTURA OBRIGATÓRIA:
+GANCHO (5-10s): Abre com uma dor, medo ou desejo que a persona reconhece imediatamente na própria vida. Deve parar o scroll. Use os eixos DOR, DESEJO ou OBJEÇÃO do tema.
+ESPELHO (30-40s): Descreva com detalhes a situação que a persona está vivendo — sem dar a solução ainda. Quanto mais ela se reconhecer, melhor. Fale sobre o que ela perde, sente ou evita por causa desse território emocional.
+VIRADA (10-15s): Introduza a possibilidade de mudança sem revelar o método. "Mas existe uma forma diferente de lidar com isso."
+CTA (10s): Chamada para ação curiosa — não de venda direta. Ex: "Se você se reconheceu aqui, clica no link e descobre como outras mulheres viraram esse jogo."
+
+REGRAS:
+- Não venda nada neste anúncio — gere identificação.
+- Use linguagem emocional e próxima, como se estivesse falando com uma amiga.
+- O tópico é o território — o tema é o fio condutor do roteiro.
+- Evite soluções, metodologias ou nomes de produtos neste roteiro.`
+  },
+  {
+    id: 'envolver', nome: 'Anúncio Geração de Valor Reels Envolver', objetivo: 'Jornada', etapa: 'Envolver',
+    conjunto: 'Assunto Principal', duracao: '60 a 90 segundos',
+    quandoUsar: 'Para audiência que já te conhece mas ainda não comprou. Educa mostrando o método como caminho real — desperta o desejo de saber mais. Entrega valor genuíno sem parecer venda.',
+    prompt: `Crie um roteiro de anúncio em vídeo (reels) no modelo GERAÇÃO DE VALOR para o objetivo ENVOLVER, usando o tópico e tema indicados.
+
+DURAÇÃO: 60 a 90 segundos.
+
+ESTRUTURA OBRIGATÓRIA:
+GANCHO (5-10s): Abre com uma pergunta ou afirmação que desafia uma crença comum da persona sobre o tópico.
+ENSINO (35-45s): Entregue um insight real do método — algo que a persona não sabia e que muda a forma como ela enxerga o problema. Use a perspectiva autoral da criadora, não uma dica genérica do mercado. O insight deve ser valioso o suficiente para ela querer salvar o vídeo.
+CONEXÃO (10s): Mostre como esse insight se encaixa num caminho maior — o método. "Isso é só uma das coisas que trabalhamos dentro do [nome do método/produto]."
+CTA (10s): Chamada para aprender mais. Ex: "Clica no link e vê como aplicar isso no seu projeto."
+
+REGRAS:
+- Este anúncio educa — entregue valor real, não teaser vazio.
+- O insight deve ser autoral — baseado na experiência e visão da criadora.
+- O método deve aparecer de forma natural, não forçada.
+- Tom de especialista que ensina, não de vendedora.`
+  },
+  {
+    id: 'relacionar', nome: 'Anúncio Geração de Valor Reels Relacionar', objetivo: 'Jornada', etapa: 'Relacionar',
+    conjunto: 'Conexão Emocional', duracao: '45 a 60 segundos',
+    quandoUsar: 'Para audiência que já consome seu conteúdo mas ainda não se decidiu. Usa ponto de vista autoral para gerar conexão genuína e posicionamento. O anúncio que mais parece conteúdo orgânico.',
+    prompt: `Crie um roteiro de anúncio em vídeo (reels) no modelo GERAÇÃO DE VALOR para o objetivo RELACIONAR, usando o tópico e tema indicados.
+
+DURAÇÃO: 45 a 60 segundos.
+
+ESTRUTURA OBRIGATÓRIA:
+GANCHO (5s): Abre com uma opinião clara e direta sobre o tópico — sem rodeios. Deve soar como algo que só essa criadora diria.
+PONTO DE VISTA (25-35s): Desenvolva a opinião com argumentos baseados em experiência real. Questione uma crença comum do mercado ou provoque uma reflexão que a persona ainda não teve. Use os eixos OPINIÃO, PROVOCAÇÃO ou REFLEXÃO do tema.
+POSICIONAMENTO (10s): Conecte o ponto de vista com o que a criadora acredita e como isso se reflete no seu método. "É por isso que no meu trabalho eu faço diferente."
+CTA (10s): Chamada para quem concorda. Ex: "Se você pensa igual a mim sobre isso, clica no link — você vai se identificar com o que a gente faz."
+
+REGRAS:
+- Seja direta e opinativa — anúncio de relacionar não pode ser genérico.
+- Evite linguagem de vendas neste roteiro — o posicionamento é o que vende.
+- O ponto de vista deve ser autoral, baseado em vivência real.
+- Tom de conversa entre iguais — não de palestrante.`
+  },
+  {
+    id: 'fidelizar', nome: 'Anúncio Geração de Valor Reels Fidelizar', objetivo: 'Jornada', etapa: 'Fidelizar',
+    conjunto: 'Persona', duracao: '45 a 60 segundos',
+    quandoUsar: 'Para audiência que já está na base e precisa do empurrão final. Usa case real ou resultado de aluna para mostrar que a transformação é possível para alguém igual a ela. Alta prova social.',
+    prompt: `Crie um roteiro de anúncio em vídeo (reels) no modelo GERAÇÃO DE VALOR para o objetivo FIDELIZAR, usando o tópico e tema indicados.
+
+DURAÇÃO: 45 a 60 segundos.
+
+ESTRUTURA OBRIGATÓRIA:
+GANCHO (5-10s): Abre apresentando uma aluna ou resultado real de forma que a persona se reconheça. Ex: "Ela tinha [situação comum da persona] e hoje [resultado concreto]."
+JORNADA (25-30s): Conte a virada — o antes, o momento de decisão e o depois. Foque no que mudou na vida dela depois que aplicou o método. Use o tópico como território da transformação. A história deve soar como alguém igual à persona que está assistindo.
+ESPELHO (10s): Conecte a história com quem está assistindo. "Se a história dela soa familiar para você, é porque o caminho dela pode ser o seu também."
+CTA (10s): Chamada para ação com prova social. Ex: "Clica no link e vê o que outras mulheres estão conquistando."
+
+REGRAS:
+- O case deve ser específico — evite generalidades.
+- A persona da aluna deve espelhar a persona da audiência.
+- Não invente resultados — use apenas transformações reais.
+- Tom emocional e próximo, não institucional.`
+  },
+  {
+    id: 'humanizar', nome: 'Anúncio Geração de Valor Reels Humanizar', objetivo: 'Jornada', etapa: 'Humanizar',
+    conjunto: 'Persona', duracao: '30 a 45 segundos',
+    quandoUsar: 'Para audiência que já te acompanha e precisa ver quem você é por trás do método. Usa bastidor, momento pessoal ou reflexão atual para criar conexão humana genuína — sem parecer anúncio. O mais espontâneo de todos.',
+    prompt: `Crie um roteiro de anúncio em vídeo (reels) no modelo GERAÇÃO DE VALOR para o objetivo HUMANIZAR, usando o tópico e tema indicados.
+
+DURAÇÃO: 30 a 45 segundos.
+
+ESTRUTURA OBRIGATÓRIA:
+ABERTURA (5s): Começa no meio de um momento real — sem introdução formal. Pode ser um pensamento, uma descoberta ou um bastidor do dia.
+MOMENTO (20-25s): Compartilhe algo pessoal conectado ao tópico — uma reflexão que está tendo agora, algo que aprendeu recentemente ou um bastidor do seu trabalho. Use os eixos MOMENTO PESSOAL, TENDÊNCIA/MERCADO ou REFLEXÃO DO MOMENTO. Deve soar espontâneo, não roteirizado.
+CONEXÃO (5-10s): Uma frase que conecta o momento pessoal com quem está assistindo — sem forçar. Ex: "Talvez você também esteja passando por isso."
+CTA (5s): Leve, sem pressão. Ex: "Se quiser saber mais sobre como trabalho isso, link na bio."
+
+REGRAS:
+- Este é o anúncio que menos parece anúncio — preserve essa qualidade.
+- Não venda nada explicitamente — a conexão é o que converte.
+- Tom completamente natural, como se estivesse falando com uma amiga.
+- Evite qualquer linguagem de marketing ou vendas neste roteiro.`
+  },
+];
+
+function etapaColor(etapa) {
+  const map = {
+    Atrair: 'var(--obj-atrair)', Envolver: 'var(--obj-envolver)', Relacionar: 'var(--obj-relacionar)',
+    Ofertar: 'var(--obj-ofertar)', Fidelizar: 'var(--obj-fidelizar)', Humanizar: 'var(--obj-humanizar)'
+  };
+  return map[etapa] || 'var(--red)';
+}
+function etapaTint(etapa) {
+  const map = {
+    Atrair: 'var(--obj-atrair-tint)', Envolver: 'var(--obj-envolver-tint)', Relacionar: 'var(--obj-relacionar-tint)',
+    Ofertar: 'var(--obj-ofertar-tint)', Fidelizar: 'var(--obj-fidelizar-tint)', Humanizar: 'var(--obj-humanizar-tint)'
+  };
+  return map[etapa] || 'var(--red-tint)';
+}
+
+function temaOptionsMarkup(etapa) {
+  const itens = producaoItems.filter(i => i.etapa === etapa).sort((a, b) => {
+    if (a.topicoIndex == null && b.topicoIndex == null) return a.ordem - b.ordem;
+    if (a.topicoIndex == null) return 1;
+    if (b.topicoIndex == null) return -1;
+    return a.topicoIndex - b.topicoIndex;
+  });
+  if (!itens.length) return '<option value="">Nenhum tema gerado ainda pra esse objetivo</option>';
+  const preview = t => t.length > 55 ? t.slice(0, 55) + '…' : t;
+  return '<option value="">— sem tema específico —</option>' +
+    itens.map(i => `<option value="${i.id}">${i.topicoIndex ? `T${i.topicoIndex} — ` : '(avulso) '}${preview(i.tema)}</option>`).join('');
+}
+
+function montarPromptModelo(modeloId) {
+  const m = modelos.find(x => x.id === modeloId);
+  const formatoId = document.getElementById(`modelo-formato-${modeloId}`).value;
+  const ctaId = document.getElementById(`modelo-cta-${modeloId}`).value;
+  const temaId = document.getElementById(`modelo-tema-${modeloId}`).value;
+  const formato = formatoEntries.find(f => f.id === formatoId);
+  const cta = ctaEntries.find(c => c.id === ctaId);
+  const item = producaoItems.find(i => i.id === temaId);
+
+  let texto = `Você é copywriter especialista no funil de captação da Caverna Vermelha (Jade Torres, mentora de mentoras).
+
+${CLIENTE_MADURA_CONTEXT}
+
+${m.prompt}`;
+
+  if (formato) {
+    texto += `\n\nFORMATO: ${formato.nome}\n${formato.prompt}`;
+  }
+
+  if (item) {
+    texto += `\n\n${item.topicoIndex ? `TÓPICO: T${item.topicoIndex} ${item.topicoNome}\nEIXO: ${item.eixo}\n` : ''}TEMA: ${item.tema}`;
+  }
+
+  texto += cta
+    ? `\n\nCTA sugerido (pode ajustar): ${cta.texto}`
+    : `\n\nCTA: escolha uma chamada final adequada ao objetivo — nunca "comprar", sempre assistir o vídeo / se aprofundar no funil de captação.`;
+
+  texto += item
+    ? `\n\nEscreva o roteiro completo seguindo a estrutura obrigatória acima, para este tema específico.`
+    : `\n\nEscreva o roteiro completo seguindo a estrutura obrigatória acima.`;
+
+  document.getElementById(`modelo-preview-${modeloId}`).textContent = texto;
+  return texto;
+}
+
+function abrirGeradorModelo(modeloId) {
+  const box = document.getElementById(`montador-${modeloId}`);
+  const abrindo = !box.classList.contains('show');
+  box.classList.toggle('show');
+  if (abrindo) montarPromptModelo(modeloId);
+}
+
+function copiarPromptModelo(modeloId) {
+  copiarTexto(montarPromptModelo(modeloId));
+}
+
+function renderModelos() {
+  const el = document.getElementById('modelos-cards');
+  const objName = o => o === 'Direto' ? 'Anúncio Direto' : 'Anúncio de Jornada';
+  el.innerHTML = modelos.map(m => `
+    <div class="modelo-card" style="--mc:${etapaColor(m.etapa)};">
+      <div class="modelo-card-top">
+        <div>
+          <p class="modelo-nome">${m.nome}</p>
+          <span class="pill pill-linha" style="background:${etapaTint(m.etapa)}; color:${etapaColor(m.etapa)};">${objName(m.objetivo)} · ${m.etapa}</span>
+        </div>
+        <button class="copy-prompt-btn" style="--mc:${etapaColor(m.etapa)};" onclick="abrirGeradorModelo('${m.id}')">Gerar</button>
+      </div>
+      <p class="modelo-meta"><b>Conjunto:</b> ${m.conjunto} &nbsp;·&nbsp; <b>Duração:</b> ${m.duracao}</p>
+      <p class="modelo-quando">${m.quandoUsar}</p>
+
+      <div class="montador-box" id="montador-${m.id}">
+        <div class="field" style="margin-bottom:16px;">
+          <label>Tema (opcional — puxa do Estoque de Anúncios)</label>
+          <select id="modelo-tema-${m.id}" onchange="montarPromptModelo('${m.id}')">${temaOptionsMarkup(m.etapa)}</select>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Formato</label>
+            <select id="modelo-formato-${m.id}" onchange="montarPromptModelo('${m.id}')">${formatoOptionsMarkup()}</select>
+          </div>
+          <div class="field">
+            <label>CTA</label>
+            <select id="modelo-cta-${m.id}" onchange="montarPromptModelo('${m.id}')">${ctaOptionsMarkup(m.etapa)}</select>
+          </div>
+        </div>
+        <p class="modelo-meta" style="margin:12px 0 6px;">Prompt montado:</p>
+        <div class="modelo-prompt-box" id="modelo-preview-${m.id}"></div>
+        <button class="copy-prompt-btn" style="--mc:${etapaColor(m.etapa)}; margin-top:10px;" onclick="copiarPromptModelo('${m.id}')">Copiar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---------- Tópicos (Cubo Mágico de Anúncios) ----------
+let topicosAssunto = [];
+let topicosPersona = [];
+let topicosConexao = [];
+
+function showTopicosStatus(msg) {
+  const el = document.getElementById('topicos-status');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function parseTopicosBloco(text) {
+  const topics = [];
+  const topicRegex = /\d+\.\s*\*\*(.+?)\*\*\s*([\s\S]*?)(?=\n\s*\d+\.\s*\*\*|$)/g;
+  let match;
+  while ((match = topicRegex.exec(text)) !== null) {
+    const nome = match[1].trim();
+    const body = match[2];
+    const definicao = (body.match(/[-•]?\s*Defini[cç][aã]o:\s*(.+)/i) || [])[1] || '';
+    const falaSobre = (body.match(/[-•]?\s*Fala sobre:\s*(.+)/i) || [])[1] || '';
+    let pergunta = (body.match(/[-•]?\s*Pergunta central:\s*(.+)/i) || [])[1] || '';
+    pergunta = pergunta.replace(/^"+|"+$/g, '').trim();
+    if (nome) topics.push({ nome, definicao: definicao.trim(), falaSobre: falaSobre.trim(), pergunta });
+  }
+  return topics;
+}
+
+async function processarColuna(prefix) {
+  const raw = document.getElementById('paste-' + prefix).value;
+  const parsed = parseTopicosBloco(raw);
+  if (prefix === 'assunto') topicosAssunto = parsed;
+  else if (prefix === 'persona') topicosPersona = parsed;
+  else if (prefix === 'conexao') topicosConexao = parsed;
+  await saveList('topicos-' + prefix, parsed);
+  if (parsed.length > 0) {
+    const ta = document.getElementById('paste-' + prefix);
+    ta.value = '';
+    ta.classList.add('hidden-paste');
+  }
+  return { prefix, raw, count: parsed.length };
+}
+
+const LABEL_CONJUNTO = { assunto: 'Assunto Principal', persona: 'Persona', conexao: 'Conexão' };
+
+async function distribuirColuna(prefix) {
+  const r = await processarColuna(prefix);
+  showTopicosStatus(r.count !== 12 && r.raw.trim() ? `Confere o formato — ${LABEL_CONJUNTO[prefix]}: ${r.count}/12 reconhecidos` : '');
+  renderTopicos();
+  showToast(`${LABEL_CONJUNTO[prefix]} distribuído.`);
+}
+
+function toggleColagem(prefix) {
+  const ta = document.getElementById('paste-' + prefix);
+  ta.classList.toggle('hidden-paste');
+  if (!ta.classList.contains('hidden-paste')) ta.focus();
+}
+
+function toggleTopicoInfo(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show');
+}
+
+function renderTopicoLista(list, prefix) {
+  if (!list.length) {
+    return '<p style="font-size:11.5px; color:var(--text-faint); font-style:italic; font-family:var(--font-display); padding:4px 0 12px;">Nenhum tópico distribuído ainda.</p>';
+  }
+  const color = prefix === 'assunto' ? 'var(--red)' : prefix === 'persona' ? 'var(--gold)' : 'var(--copper)';
+  return list.map((t, i) => `
+    <div class="topico-row">
+      <div class="topico-row-top">
+        <span class="topico-num" style="background:${color};">${i + 1}</span>
+        <span class="topico-nome">${t.nome}</span>
+        <button class="topico-info-btn" onclick="toggleTopicoInfo('${prefix}-detail-${i}')">i</button>
+      </div>
+      <div class="topico-detail" id="${prefix}-detail-${i}">
+        ${t.definicao ? `<div><b>Definição:</b> ${t.definicao}</div>` : ''}
+        ${t.falaSobre ? `<div><b>Fala sobre:</b> ${t.falaSobre}</div>` : ''}
+        ${t.pergunta ? `<div><b>Pergunta central:</b> ${t.pergunta}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTopicos() {
+  document.getElementById('list-assunto').innerHTML = renderTopicoLista(topicosAssunto, 'assunto');
+  document.getElementById('list-persona').innerHTML = renderTopicoLista(topicosPersona, 'persona');
+  document.getElementById('list-conexao').innerHTML = renderTopicoLista(topicosConexao, 'conexao');
+
+  [['assunto', topicosAssunto], ['persona', topicosPersona], ['conexao', topicosConexao]].forEach(([prefix, list]) => {
+    const ta = document.getElementById('paste-' + prefix);
+    if (list.length > 0) ta.classList.add('hidden-paste');
+  });
+}
+
+// ---------- Storage helpers ----------
+async function loadList(key) {
+  try {
+    const r = await window.storage.get(key, false);
+    return r ? JSON.parse(r.value) : [];
+  } catch (e) { return []; }
+}
+async function saveList(key, list) {
+  try {
+    await window.storage.set(key, JSON.stringify(list), false);
+  } catch (e) { showToast('Erro ao salvar. Tenta de novo.'); }
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ---------- CTAs ----------
+let ctaEntries = [];
+let editingCtaId = null;
+
+const SEED_CTAS = [
+  { etapa: 'Ofertar', texto: 'Clica no link aqui embaixo e garante agora.', obs: 'Fechamento direto — anúncio já apresentou oferta e diferencial.' },
+  { etapa: 'Atrair', texto: 'Se você se reconheceu aqui, clica no link e descobre como outras mulheres viraram esse jogo.', obs: 'Curiosidade, não venda — pra quem ainda não decidiu.' },
+  { etapa: 'Envolver', texto: 'Clica no link e vê como aplicar isso no seu projeto.', obs: 'Depois de entregar um insight real de método.' },
+  { etapa: 'Relacionar', texto: 'Se você pensa igual a mim sobre isso, clica no link — você vai se identificar com o que a gente faz.', obs: 'Fecha por afinidade de posicionamento, não por oferta.' },
+  { etapa: 'Fidelizar', texto: 'Clica no link e vê o que outras mulheres estão conquistando.', obs: 'Com prova social/case real no corpo do anúncio.' },
+  { etapa: 'Humanizar', texto: 'Se quiser saber mais sobre como trabalho isso, link na bio.', obs: 'Leve, sem pressão — o anúncio que menos parece anúncio.' }
+];
+
+function ctaColor(etapa) {
+  return etapa === 'Geral' ? 'var(--copper)' : etapaColor(etapa);
+}
+function ctaTint(etapa) {
+  return etapa === 'Geral' ? 'var(--copper-tint)' : etapaTint(etapa);
+}
+
+// CTAs que a Jade foi trazendo pelo chat — cada um com id fixo pra nunca duplicar,
+// mesmo em sessões que já tinham CTAs salvos antes dessa lista existir.
+const CTAS_ADICIONADOS_VIA_CHAT = [
+  {
+    id: 'chat-cta-001', etapa: 'Ofertar',
+    texto: 'Eu gravei um vídeo te contando mais detalhes sobre como é viver do digital através do seu conhecimento, sem ficar refém de uma agenda lotada — e tendo tempo para evoluir de verdade como infoprodutora, mentora e empresária. Se você quer entender como essa estrutura pode funcionar para você, clica aqui para ter acesso. É só fazer um cadastro rápido. E nos vemos do outro lado.',
+    obs: ''
+  }
+];
+
+async function loadCtas() {
+  ctaEntries = await loadList('cta-entries');
+  if (!ctaEntries.length) {
+    let jaSemeado = false;
+    try { const r = await window.storage.get('cta-seeded', false); jaSemeado = !!r; } catch (e) { /* nunca semeado */ }
+    if (!jaSemeado) {
+      ctaEntries = SEED_CTAS.map(c => ({ id: uid(), ...c, criadoEm: new Date().toISOString() }));
+      await saveList('cta-entries', ctaEntries);
+      try { await window.storage.set('cta-seeded', 'true', false); } catch (e) { /* ignora */ }
+    }
+  }
+
+  let mudou = false;
+  CTAS_ADICIONADOS_VIA_CHAT.forEach(c => {
+    if (!ctaEntries.some(existing => existing.id === c.id)) {
+      ctaEntries.unshift({ ...c, criadoEm: new Date().toISOString() });
+      mudou = true;
+    }
+  });
+  if (mudou) await saveList('cta-entries', ctaEntries);
+}
+
+async function salvarCta() {
+  const texto = document.getElementById('cta-texto').value.trim();
+  if (!texto) { showToast('Escreve o texto do CTA.'); return; }
+  ctaEntries.unshift({
+    id: uid(),
+    etapa: document.getElementById('cta-etapa').value,
+    texto,
+    obs: document.getElementById('cta-obs').value.trim(),
+    criadoEm: new Date().toISOString()
+  });
+  await saveList('cta-entries', ctaEntries);
+  document.getElementById('cta-texto').value = '';
+  document.getElementById('cta-obs').value = '';
+  renderCtas();
+  showToast('CTA adicionado.');
+}
+
+async function excluirCta(id) {
+  ctaEntries = ctaEntries.filter(c => c.id !== id);
+  await saveList('cta-entries', ctaEntries);
+  renderCtas();
+}
+
+function editarCta(id) {
+  editingCtaId = id;
+  renderCtas();
+}
+
+function cancelarEdicaoCta() {
+  editingCtaId = null;
+  renderCtas();
+}
+
+async function salvarEdicaoCta(id) {
+  const c = ctaEntries.find(x => x.id === id);
+  if (!c) return;
+  c.etapa = document.getElementById(`cta-edit-etapa-${id}`).value;
+  c.texto = document.getElementById(`cta-edit-texto-${id}`).value.trim();
+  c.obs = document.getElementById(`cta-edit-obs-${id}`).value.trim();
+  await saveList('cta-entries', ctaEntries);
+  editingCtaId = null;
+  renderCtas();
+  showToast('CTA atualizado.');
+}
+
+const ETAPAS_CTA_OPCOES = ['Geral', 'Atrair', 'Envolver', 'Relacionar', 'Ofertar', 'Fidelizar', 'Humanizar'];
+
+function renderCtas() {
+  const el = document.getElementById('ctas-list');
+  if (!ctaEntries.length) {
+    el.innerHTML = '<div class="empty-state">Nenhum CTA cadastrado ainda.</div>';
+    return;
+  }
+  el.innerHTML = ctaEntries.map(c => {
+    if (editingCtaId === c.id) {
+      return `
+      <div class="cta-item" style="--cc:${ctaColor(c.etapa)};">
+        <div class="field" style="margin-bottom:10px;">
+          <label>Objetivo</label>
+          <select id="cta-edit-etapa-${c.id}">
+            ${ETAPAS_CTA_OPCOES.map(e => `<option value="${e}" ${c.etapa === e ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Texto do CTA</label>
+          <textarea id="cta-edit-texto-${c.id}">${c.texto}</textarea>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>Quando usar</label>
+          <input id="cta-edit-obs-${c.id}" value="${(c.obs || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" onclick="salvarEdicaoCta('${c.id}')">Salvar</button>
+          <button class="btn-danger-ghost" onclick="cancelarEdicaoCta()">Cancelar</button>
+        </div>
+      </div>`;
+    }
+    return `
+    <div class="cta-item" style="--cc:${ctaColor(c.etapa)};">
+      <div class="cta-item-top">
+        <span class="pill pill-linha" style="background:${ctaTint(c.etapa)}; color:${ctaColor(c.etapa)};">${c.etapa}</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-danger-ghost" onclick="editarCta('${c.id}')" style="border-color:var(--border-soft); color:var(--text-muted);">Editar</button>
+          <button class="btn-danger-ghost" onclick="excluirCta('${c.id}')">Excluir</button>
+        </div>
+      </div>
+      <p class="cta-texto">${c.texto}</p>
+      ${c.obs ? `<p class="cta-obs">${c.obs}</p>` : ''}
+    </div>
+  `;
+  }).join('');
+}
+
+// ---------- Formatos ----------
+let formatoEntries = [];
+let editingFormatoId = null;
+
+// Formatos oficiais — controlados por código. Toda vez que a Jade pedir ajuste aqui,
+// eles se sincronizam sozinhos na sessão de quem já tinha o artefato aberto.
+const SEED_FORMATOS = [
+  { nome: 'Reels', prompt: 'Vídeo vertical, até 90 segundos, gravado com celular, fala direta pra câmera, sem cortes complexos.' }
+];
+
+async function loadFormatos() {
+  formatoEntries = await loadList('formato-entries');
+  let mudou = false;
+  SEED_FORMATOS.forEach(seed => {
+    const existente = formatoEntries.find(f => f.nome === seed.nome);
+    if (existente) {
+      if (existente.prompt !== seed.prompt || !existente.fixo) {
+        existente.prompt = seed.prompt;
+        existente.fixo = true;
+        mudou = true;
+      }
+    } else {
+      formatoEntries.unshift({ id: uid(), nome: seed.nome, prompt: seed.prompt, fixo: true, criadoEm: new Date().toISOString() });
+      mudou = true;
+    }
+  });
+  if (mudou) await saveList('formato-entries', formatoEntries);
+}
+
+async function salvarFormato() {
+  const nome = document.getElementById('formato-nome').value.trim();
+  const prompt = document.getElementById('formato-prompt').value.trim();
+  if (!nome) { showToast('Dá um nome pro formato.'); return; }
+  formatoEntries.unshift({ id: uid(), nome, prompt, fixo: false, criadoEm: new Date().toISOString() });
+  await saveList('formato-entries', formatoEntries);
+  document.getElementById('formato-nome').value = '';
+  document.getElementById('formato-prompt').value = '';
+  renderFormatos();
+  showToast('Formato autoral adicionado.');
+}
+
+async function excluirFormato(id) {
+  const f = formatoEntries.find(x => x.id === id);
+  if (f && f.fixo) { showToast('Esse formato é oficial e não pode ser excluído.'); return; }
+  formatoEntries = formatoEntries.filter(x => x.id !== id);
+  await saveList('formato-entries', formatoEntries);
+  renderFormatos();
+}
+
+function editarFormato(id) { editingFormatoId = id; renderFormatos(); }
+function cancelarEdicaoFormato() { editingFormatoId = null; renderFormatos(); }
+
+async function salvarEdicaoFormato(id) {
+  const f = formatoEntries.find(x => x.id === id);
+  if (f.fixo) return;
+  f.nome = document.getElementById(`formato-edit-nome-${id}`).value.trim();
+  f.prompt = document.getElementById(`formato-edit-prompt-${id}`).value.trim();
+  await saveList('formato-entries', formatoEntries);
+  editingFormatoId = null;
+  renderFormatos();
+  showToast('Formato atualizado.');
+}
+
+function formatoOptionsMarkup() {
+  if (!formatoEntries.length) return '<option value="">Nenhum formato cadastrado</option>';
+  return formatoEntries.map(f => `<option value="${f.id}">${f.nome}${f.fixo ? '' : ' (autoral)'}</option>`).join('');
+}
+
+function renderFormatos() {
+  const el = document.getElementById('formatos-list');
+  if (!formatoEntries.length) {
+    el.innerHTML = '<div class="empty-state">Nenhum formato cadastrado ainda.</div>';
+    return;
+  }
+  el.innerHTML = formatoEntries.map(f => {
+    if (editingFormatoId === f.id) {
+      return `
+      <div class="formato-item">
+        <div class="field" style="margin-bottom:10px;">
+          <label>Nome</label>
+          <input id="formato-edit-nome-${f.id}" value="${(f.nome || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Regras</label>
+          <textarea id="formato-edit-prompt-${f.id}">${f.prompt || ''}</textarea>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" onclick="salvarEdicaoFormato('${f.id}')">Salvar</button>
+          <button class="btn-danger-ghost" onclick="cancelarEdicaoFormato()">Cancelar</button>
+        </div>
+      </div>`;
+    }
+    return `
+    <div class="formato-item">
+      <div class="formato-item-top">
+        <p class="formato-nome">${f.nome}</p>
+        ${f.fixo
+          ? '<span class="pill pill-status">Oficial</span>'
+          : `<div style="display:flex; gap:8px;">
+               <button class="btn-danger-ghost" style="border-color:var(--border-soft); color:var(--text-muted);" onclick="editarFormato('${f.id}')">Editar</button>
+               <button class="btn-danger-ghost" onclick="excluirFormato('${f.id}')">Excluir</button>
+             </div>`
+        }
+      </div>
+      ${f.prompt ? `<p class="formato-desc">${f.prompt}</p>` : ''}
+    </div>
+  `;
+  }).join('');
+}
+
+const CLIENTE_MADURA_CONTEXT = `Cliente madura da Caverna: mulher de 35 a 55 anos, especialista (psicóloga, terapeuta, nutricionista, consultora, formadora, profissional liberal) com anos de bagagem real, atendimentos e resultados comprovados no offline — mas cuja comunicação digital não reflete essa autoridade. Já tentou cursos de conteúdo, Instagram, copywriting e funil sem resolver o problema de fundo. Cobra por sessão individual (R$100-300), agenda lotada, quer migrar de venda de tempo pra venda de programa/mentoria escalável.
+Frase-síntese: "Ela não tem problema de conteúdo. Ela tem problema de método não extraído."
+Frases reais dela: "Sei muito, mas não consigo organizar isso em algo que as pessoas entendam e paguem." / "Tenho autoridade no presencial, mas no digital parece que sou qualquer uma." / "Comprei tudo que tinha pra comprar e ainda não vendo com consistência." / "Minha comunicação não representa o que eu realmente faço."
+O que ela não aceita mais: fórmulas genéricas, ser tratada como iniciante, comunicar abaixo do que realmente entrega, depender eternamente do próprio tempo e presença pra faturar.
+Ela quer: método com nome próprio, clientes que já chegam reconhecendo seu valor, vender entrega autoral e não tempo.`;
+
+const OBJETIVO_DA_ETAPA = { Ofertar: 'Direto', Atrair: 'Jornada', Envolver: 'Jornada', Relacionar: 'Jornada', Fidelizar: 'Jornada', Humanizar: 'Jornada' };
+const TOPICOS_POR_CONJUNTO = () => ({
+  'Assunto Principal': topicosAssunto,
+  'Persona': topicosPersona,
+  'Conexão Emocional': topicosConexao
+});
+
+// ---------- Temas (Cubo Mágico de Anúncios) ----------
+// Eixos por posição do tópico (1-12) — blocos de 4 — só pras etapas de 3 eixos
+const EIXOS_3 = {
+  Atrair: ['DOR','DOR','DOR','DOR','DESEJO','DESEJO','DESEJO','DESEJO','OBJEÇÃO','OBJEÇÃO','OBJEÇÃO','OBJEÇÃO'],
+  Relacionar: ['OPINIÃO','OPINIÃO','OPINIÃO','OPINIÃO','PROVOCAÇÃO','PROVOCAÇÃO','PROVOCAÇÃO','PROVOCAÇÃO','REFLEXÃO','REFLEXÃO','REFLEXÃO','REFLEXÃO'],
+  Humanizar: ['MOMENTO PESSOAL','MOMENTO PESSOAL','MOMENTO PESSOAL','MOMENTO PESSOAL','TENDÊNCIA/MERCADO','TENDÊNCIA/MERCADO','TENDÊNCIA/MERCADO','TENDÊNCIA/MERCADO','REFLEXÃO DO MOMENTO','REFLEXÃO DO MOMENTO','REFLEXÃO DO MOMENTO','REFLEXÃO DO MOMENTO']
+};
+const EIXO_UNICO = { Envolver: 'ENSINO', Ofertar: 'OBJEÇÃO REAL', Fidelizar: 'CONQUISTA' };
+function eixosDaEtapa(etapa) {
+  return EIXOS_3[etapa] || Array(12).fill(EIXO_UNICO[etapa]);
+}
+// Sequência embaralhada de publicação — índices de tópico (1-12), fixa por etapa
+const EMBARALHAMENTO = {
+  Atrair: [1,2,4,3,5,6,8,7,9,10,12,11],
+  Envolver: [5,6,8,7,9,10,12,11,1,2,4,3],
+  Relacionar: [9,10,12,11,1,2,4,3,5,6,8,7],
+  Ofertar: [4,3,1,2,8,7,5,6,12,11,9,10],
+  Fidelizar: [8,7,5,6,12,11,9,10,4,3,1,2],
+  Humanizar: [12,11,9,10,4,3,1,2,8,7,5,6]
+};
+
+let temasPorEtapa = {};
+let estoques = [];
+let producaoItems = [];
+
+function etapaSelecionadaTemas() {
+  return document.querySelector('#tema-etapa-pills .etapa-pill.active')?.dataset.etapa || 'Atrair';
+}
+
+function showTemaGenStatus(msg) {
+  const el = document.getElementById('tema-gen-status');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+let promptTemasAtual = '';
+
+function prepararPromptTemas() {
+  const etapa = etapaSelecionadaTemas();
+  const conjunto = CONJUNTO_POR_ETAPA[etapa];
+  const topicos = TOPICOS_POR_CONJUNTO()[conjunto] || [];
+
+  if (topicos.length !== 12) {
+    showTemaGenStatus(`Cadastre os 12 tópicos de "${conjunto}" na aba Tópicos antes de gerar este estoque (hoje tem ${topicos.length}/12).`);
+    document.getElementById('tema-prompt-box').style.display = 'none';
+    return;
+  }
+
+  const eixos = eixosDaEtapa(etapa);
+  const listaTopicos = topicos.map((t, i) => `${i + 1}. [${eixos[i]}] ${t.nome}: ${t.definicao}`).join('\n');
+
+  promptTemasAtual = `Você é estrategista de conteúdo da Caverna Vermelha (Jade Torres, mentora de mentoras), aplicando a metodologia Cubo Mágico de Anúncios.
+
+${CLIENTE_MADURA_CONTEXT}
+
+Se você tiver acesso ao arquivo do dossiê da cliente madura (documento completo), use-o como inspiração adicional além do resumo acima.
+
+Objetivo do estoque: ${etapa}. Conjunto de tópicos: ${conjunto}.
+
+Para cada um dos 12 tópicos abaixo, crie um TEMA — uma frase curta (estilo manchete, até 15 palavras) que expresse esse tópico através do eixo indicado entre colchetes. O tema é o ângulo específico do anúncio, não o tópico em si.
+
+TÓPICOS (na ordem, com eixo já atribuído):
+${listaTopicos}
+
+Responda APENAS com um array JSON válido, sem markdown, sem texto antes ou depois, com exatamente 12 itens, onde "numero" corresponde à posição do tópico na lista acima (1 a 12), neste formato exato:
+[{"numero":1,"tema":"..."},{"numero":2,"tema":"..."},{"numero":3,"tema":"..."}]`;
+
+  document.getElementById('tema-prompt-texto').textContent = promptTemasAtual;
+  document.getElementById('tema-prompt-box').style.display = 'block';
+  showTemaGenStatus('');
+}
+
+function copiarPromptTemas() {
+  copiarTexto(promptTemasAtual);
+}
+
+async function distribuirEstoqueTemas() {
+  const etapa = etapaSelecionadaTemas();
+  const conjunto = CONJUNTO_POR_ETAPA[etapa];
+  const topicos = TOPICOS_POR_CONJUNTO()[conjunto] || [];
+  const eixos = eixosDaEtapa(etapa);
+  const nomeEstoque = document.getElementById('tema-nome-estoque').value.trim() || `Reels ${etapa}`;
+  const raw = document.getElementById('tema-resultado-colado').value.trim();
+
+  if (!raw) { showTemaGenStatus('Cola o resultado da IA antes de distribuir.'); return; }
+
+  let parsed;
+  try {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    parsed = JSON.parse(clean);
+  } catch (e) {
+    showTemaGenStatus('Não consegui ler esse JSON — confere se colou a resposta completa, sem texto extra antes ou depois.');
+    return;
+  }
+  if (!Array.isArray(parsed) || parsed.length !== 12) {
+    showTemaGenStatus(`Esperava 12 itens e recebi ${Array.isArray(parsed) ? parsed.length : 0} — confere o resultado colado.`);
+    return;
+  }
+
+  const porNumero = {};
+  parsed.forEach((item, i) => {
+    const n = item.numero || (i + 1);
+    porNumero[n] = item.tema || '';
+  });
+
+  const temas = topicos.map((t, i) => ({
+    topicoIndex: i + 1,
+    topicoNome: t.nome,
+    eixo: eixos[i],
+    tema: porNumero[i + 1] || ''
+  }));
+  temasPorEtapa[etapa] = temas;
+  await saveList('temas-' + etapa, temas);
+
+  // cria o estoque e os itens de produção correspondentes, na ordem embaralhada
+  const estoqueId = uid();
+  estoques.push({ id: estoqueId, etapa, formato: document.getElementById('tema-formato').value, nome: nomeEstoque, criadoEm: new Date().toISOString() });
+  await saveList('estoques', estoques);
+
+  const ordem = EMBARALHAMENTO[etapa];
+  ordem.forEach((topicoIdx, pos) => {
+    const t = temas[topicoIdx - 1];
+    producaoItems.push({
+      id: uid(), estoqueId, etapa, formato: document.getElementById('tema-formato').value,
+      ordem: pos + 1, topicoIndex: t.topicoIndex, topicoNome: t.topicoNome, eixo: t.eixo, tema: t.tema,
+      status: 'pendente', criadoEm: new Date().toISOString()
+    });
+  });
+  await saveList('producao-items', producaoItems);
+
+  document.getElementById('tema-resultado-colado').value = '';
+  document.getElementById('tema-prompt-box').style.display = 'none';
+  renderMontagemCubo();
+  showTemaGenStatus('');
+  showToast('Estoque de 12 temas distribuído.');
+}
+
+function renderTemasLista(etapa) {
+  const el = document.getElementById('temas-lista');
+  const temas = temasPorEtapa[etapa];
+  if (!temas || !temas.length) {
+    el.innerHTML = '';
+    return;
+  }
+  const color = etapaColor(etapa);
+  el.innerHTML = `
+    <div class="form-card">
+      <p class="section-label" style="margin-bottom:14px;">Temas — ${etapa}</p>
+      ${temas.map((t, i) => `
+        <div class="tema-row">
+          <span class="topico-num" style="background:${color};">${i + 1}</span>
+          <div class="tema-row-body">
+            <p class="tema-ref">T${t.topicoIndex}: ${t.topicoNome} <span class="pill pill-status" style="margin-left:6px;">${t.eixo}</span></p>
+            <input class="tema-input" id="tema-edit-${etapa}-${i}" value="${(t.tema||'').replace(/"/g,'&quot;')}">
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="salvarEdicaoTemas('${etapa}')">Salvar edições</button>
+    </div>
+  `;
+}
+
+function formatarData(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function renderMontagemCubo() {
+  const el = document.getElementById('montagem-cubo');
+  if (!estoques.length) {
+    el.innerHTML = '<div class="empty-state">Nenhum estoque gerado ainda.</div>';
+    return;
+  }
+  const ordenados = [...estoques].sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+  el.innerHTML = ordenados.map(e => `
+    <div class="cubo-row">
+      <span class="cubo-row-dot" style="background:${etapaColor(e.etapa)};"></span>
+      <div class="cubo-row-body">
+        <p class="cubo-row-nome">${e.nome}</p>
+        <p class="cubo-row-meta">${e.formato} · ${formatarData(e.criadoEm)}</p>
+      </div>
+      <div class="cubo-row-actions">
+        <button class="btn-produzir" style="--rc:${etapaColor(e.etapa)};" onclick="irProduzirEstoque('${e.id}')">Produzir →</button>
+        <button class="btn-excluir-x" onclick="excluirEstoque('${e.id}')" title="Excluir estoque">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function irProduzirEstoque(estoqueId) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('.nav-item[data-tab="producao"]').classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-producao').classList.add('active');
+  mostrarProdItens(estoqueId);
+}
+
+async function excluirEstoque(estoqueId) {
+  const alvo = estoques.find(e => e.id === estoqueId);
+  const etapa = alvo ? alvo.etapa : null;
+  estoques = estoques.filter(e => e.id !== estoqueId);
+  producaoItems = producaoItems.filter(i => i.estoqueId !== estoqueId);
+  await saveList('estoques', estoques);
+  await saveList('producao-items', producaoItems);
+  renderMontagemCubo();
+  renderProdGrid();
+  if (etapa && document.getElementById('prod-estoques').style.display !== 'none') {
+    renderProdEstoques(etapa);
+  }
+  showToast('Estoque excluído.');
+}
+
+async function salvarEdicaoTemas(etapa) {
+  const temas = temasPorEtapa[etapa];
+  temas.forEach((t, i) => {
+    t.tema = document.getElementById(`tema-edit-${etapa}-${i}`).value.trim();
+  });
+  await saveList('temas-' + etapa, temas);
+  // propaga a correção pros itens de produção já criados a partir desse estoque
+  producaoItems.forEach(item => {
+    if (item.etapa === etapa) {
+      const t = temas.find(x => x.topicoIndex === item.topicoIndex);
+      if (t) item.tema = t.tema;
+    }
+  });
+  await saveList('producao-items', producaoItems);
+  showToast('Temas atualizados.');
+}
+
+function ctaOptionsMarkup(etapa) {
+  const opcoes = ctaEntries.filter(c => c.etapa === etapa || c.etapa === 'Geral');
+  const preview = t => t.length > 70 ? t.slice(0, 70) + '…' : t;
+  return '<option value="">— escrever CTA personalizado —</option>' +
+    opcoes.map(c => `<option value="${c.id}">[${c.etapa}] ${preview(c.texto)}</option>`).join('');
+}
+
+function aplicarCtaSelecionado(prefix) {
+  const sel = document.getElementById(`edit-cta-select-${prefix}`);
+  const ctaId = sel.value;
+  if (!ctaId) return;
+  const cta = ctaEntries.find(c => c.id === ctaId);
+  if (!cta) return;
+  const alvo = document.getElementById(`edit-cta-${prefix}`);
+  alvo.value = cta.texto;
+}
+
+// ---------- Produção (grid por objetivo → estoques → itens) ----------
+const statusLabel = { 'pendente': 'Pendente', 'roteirizado': 'Roteirizado', 'gravado': 'Gravado', 'editado': 'Editado', 'no-ar': 'No ar' };
+const ETAPAS_ORDEM = ['Atrair', 'Envolver', 'Relacionar', 'Ofertar', 'Fidelizar', 'Humanizar'];
+let prodEtapaAtual = null;
+let prodEstoqueAtual = null;
+
+function mostrarProdGrid() {
+  prodEtapaAtual = null;
+  prodEstoqueAtual = null;
+  document.getElementById('prod-grid').style.display = 'grid';
+  document.getElementById('prod-estoques').style.display = 'none';
+  document.getElementById('prod-itens').style.display = 'none';
+  document.getElementById('prod-breadcrumb').style.display = 'none';
+  renderProdGrid();
+}
+
+function mostrarProdEstoques(etapa) {
+  prodEtapaAtual = etapa;
+  prodEstoqueAtual = null;
+  document.getElementById('prod-grid').style.display = 'none';
+  document.getElementById('prod-estoques').style.display = 'block';
+  document.getElementById('prod-itens').style.display = 'none';
+  document.getElementById('prod-breadcrumb').style.display = 'block';
+  document.getElementById('prod-breadcrumb').innerHTML = `<a onclick="mostrarProdGrid()">Estoques</a> › ${etapa}`;
+  renderProdEstoques(etapa);
+}
+
+function mostrarProdItens(estoqueId) {
+  prodEstoqueAtual = estoqueId;
+  document.getElementById('prod-grid').style.display = 'none';
+  document.getElementById('prod-estoques').style.display = 'none';
+  document.getElementById('prod-itens').style.display = 'block';
+  const est = estoques.find(e => e.id === estoqueId);
+  document.getElementById('prod-breadcrumb').innerHTML = `<a onclick="mostrarProdGrid()">Estoques</a> › <a onclick="mostrarProdEstoques('${est.etapa}')">${est.etapa}</a> › ${est.nome}`;
+  renderProdItens(estoqueId);
+}
+
+function renderProdGrid() {
+  const el = document.getElementById('prod-grid');
+  el.innerHTML = ETAPAS_ORDEM.map(etapa => {
+    const estoquesDaEtapa = estoques.filter(e => e.etapa === etapa);
+    const itensDaEtapa = producaoItems.filter(i => i.etapa === etapa);
+    const total = itensDaEtapa.length;
+    const prontos = itensDaEtapa.filter(i => i.status !== 'pendente').length;
+    const pct = total ? Math.round((prontos / total) * 100) : 0;
+    return `
+      <div class="prod-obj-card" style="--oc:${etapaColor(etapa)};" onclick="mostrarProdEstoques('${etapa}')">
+        <div class="prod-obj-top"><span class="prod-obj-dot"></span><span class="prod-obj-nome">${etapa}</span></div>
+        <p class="prod-obj-count">${estoquesDaEtapa.length} estoque${estoquesDaEtapa.length === 1 ? '' : 's'}</p>
+        <div class="prod-obj-progress-row"><span>Progresso</span><span>${prontos}/${total}</span></div>
+        <div class="prod-obj-bar"><div class="prod-obj-bar-fill" style="width:${pct}%; background:${etapaColor(etapa)};"></div></div>
+        <p class="prod-obj-pct">${pct}% prontos</p>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderProdEstoques(etapa) {
+  const el = document.getElementById('prod-estoques');
+  const lista = estoques.filter(e => e.etapa === etapa);
+  const formAvulso = `
+    <div class="form-card" style="margin-bottom:16px;">
+      <div class="field" style="margin-bottom:10px;">
+        <label>Adicionar tema avulso (sem tópico do Cubo)</label>
+        <input id="avulso-tema-input" placeholder="Ex: Minha história pessoal sobre a transição de carreira">
+      </div>
+      <button class="btn btn-primary" onclick="adicionarTemaAvulso('${etapa}')">Adicionar</button>
+    </div>
+  `;
+  if (!lista.length) {
+    el.innerHTML = formAvulso + '<div class="empty-state">Nenhum estoque criado ainda para este objetivo — gere um na aba Temas.</div>';
+    return;
+  }
+  el.innerHTML = formAvulso + lista.map(e => {
+    const itens = producaoItems.filter(i => i.estoqueId === e.id);
+    const prontos = itens.filter(i => i.status !== 'pendente').length;
+    return `
+      <div class="estoque-card" style="--oc:${etapaColor(etapa)};" onclick="mostrarProdItens('${e.id}')">
+        <div>
+          <p class="estoque-nome">${e.nome}</p>
+          <p class="estoque-meta">${etapa} · ${e.formato} · ${itens.length} tema${itens.length===1?'':'s'} · ${prontos}/${itens.length} prontos</p>
+        </div>
+        <button class="btn-danger-ghost" onclick="event.stopPropagation(); excluirEstoque('${e.id}')">Excluir</button>
+      </div>
+    `;
+  }).join('');
+}
+
+async function adicionarTemaAvulso(etapa) {
+  const input = document.getElementById('avulso-tema-input');
+  const temaTexto = input.value.trim();
+  if (!temaTexto) { showToast('Escreve o tema antes de adicionar.'); return; }
+
+  let estoqueAvulso = estoques.find(e => e.etapa === etapa && e.nome === 'Avulsos');
+  if (!estoqueAvulso) {
+    estoqueAvulso = { id: uid(), etapa, formato: 'Reels', nome: 'Avulsos', criadoEm: new Date().toISOString() };
+    estoques.push(estoqueAvulso);
+    await saveList('estoques', estoques);
+  }
+  const existentes = producaoItems.filter(i => i.estoqueId === estoqueAvulso.id);
+  producaoItems.push({
+    id: uid(), estoqueId: estoqueAvulso.id, etapa, formato: 'Reels',
+    ordem: existentes.length + 1, topicoIndex: null, topicoNome: null, eixo: '—', tema: temaTexto,
+    status: 'pendente', criadoEm: new Date().toISOString()
+  });
+  await saveList('producao-items', producaoItems);
+  input.value = '';
+  renderMontagemCubo();
+  renderProdEstoques(etapa);
+  showToast('Tema avulso adicionado.');
+}
+
+function renderProdItens(estoqueId) {
+  const el = document.getElementById('prod-itens');
+  const itens = producaoItems.filter(i => i.estoqueId === estoqueId).sort((a, b) => a.ordem - b.ordem);
+  const etapa = itens[0]?.etapa;
+  const cor = etapaColor(etapa);
+
+  const linhas = itens.map(item => {
+    const preview = item.gancho ? `<p class="item-preview">${item.gancho.length > 90 ? item.gancho.slice(0, 90) + '…' : item.gancho}</p>` : '';
+    const refTopico = item.topicoIndex ? ` · T${item.topicoIndex}: ${item.topicoNome.toUpperCase()}` : ' · avulso';
+    return `
+    <div class="item-row">
+      <div class="item-row-top">
+        <span class="topico-num" style="background:${cor};">${item.ordem}</span>
+        <div style="flex:1;">
+          <p class="item-tema">${item.tema} <span class="eixo-tag">(${item.eixo})</span></p>
+          <p class="item-ref">${item.etapa} · ${item.formato}${refTopico}</p>
+          ${preview}
+        </div>
+        <div class="item-actions">
+          <select class="item-status-select" onchange="atualizarStatusItem('${item.id}', this.value)">
+            ${Object.keys(statusLabel).map(s => `<option value="${s}" ${item.status === s ? 'selected' : ''}>${statusLabel[s]}</option>`).join('')}
+          </select>
+          <button class="btn-danger-ghost" style="border-color:var(--border-soft); color:var(--text-muted);" onclick="toggleFichaTecnica('${item.id}')">Ficha Técnica</button>
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  el.innerHTML = linhas;
+}
+
+let fichaAbertaId = null;
+
+function toggleFichaTecnica(itemId) {
+  fichaAbertaId = itemId;
+  const item = producaoItems.find(i => i.id === itemId);
+  document.getElementById('ficha-modal-title').textContent = item.tema;
+  renderFichaTecnicaConteudo(itemId);
+  document.getElementById('ficha-modal-overlay').classList.add('show');
+}
+
+function fecharFichaTecnica() {
+  document.getElementById('ficha-modal-overlay').classList.remove('show');
+  fichaAbertaId = null;
+}
+
+function renderFichaTecnicaConteudo(itemId) {
+  const box = document.getElementById('ficha-modal-body');
+  const item = producaoItems.find(i => i.id === itemId);
+  if (item.gancho) {
+    box.innerHTML = `
+      <div class="field" style="margin-bottom:10px;">
+        <label>Gancho</label>
+        <textarea id="ficha-edit-gancho-${itemId}">${item.gancho}</textarea>
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>Corpo</label>
+        <textarea id="ficha-edit-corpo-${itemId}" style="min-height:160px;">${item.corpo || ''}</textarea>
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>Escolher CTA do banco</label>
+        <select id="edit-cta-select-ficha-${itemId}" onchange="aplicarCtaSelecionado('ficha-${itemId}')">${ctaOptionsMarkup(item.etapa)}</select>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>CTA</label>
+        <input id="edit-cta-ficha-${itemId}" value="${(item.cta || '').replace(/"/g, '&quot;')}">
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="salvarEdicaoFicha('${itemId}')">Salvar</button>
+        <button class="btn-danger-ghost" onclick="refazerRoteiro('${itemId}')">Limpar e colar de novo</button>
+        <button class="btn-danger-ghost" style="border-color:var(--border-soft); color:var(--text-muted);" onclick="baixarRoteiroPdf('${itemId}')">Baixar PDF</button>
+      </div>
+    `;
+  } else {
+    box.innerHTML = `
+      <p class="modelo-meta" style="margin-bottom:10px;">Gera o prompt na aba Roteiro de Anúncio (objetivo ${item.etapa}), leva pra sua IA e traz o resultado de volta aqui.</p>
+      <div class="field" style="margin-top:6px;">
+        <label>Cola aqui o roteiro que a IA devolveu</label>
+        <textarea id="ficha-resultado-${itemId}" style="min-height:180px;" placeholder="GANCHO:&#10;...&#10;&#10;CORPO:&#10;...&#10;&#10;CTA:&#10;..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="salvarRoteiroColado('${itemId}')">Salvar roteiro</button>
+    `;
+  }
+}
+
+async function atualizarStatusItem(itemId, status) {
+  const item = producaoItems.find(i => i.id === itemId);
+  item.status = status;
+  if (status === 'pendente') {
+    item.gancho = '';
+    item.corpo = '';
+    item.cta = '';
+  }
+  await saveList('producao-items', producaoItems);
+  renderProdItens(item.estoqueId);
+  renderProdGrid();
+}
+
+function parseRoteiroColado(raw) {
+  const gancho = (raw.match(/GANCHO\s*:\s*([\s\S]*?)(?=\n\s*CORPO\s*:|\n\s*CTA\s*:|$)/i) || [])[1] || '';
+  const corpo = (raw.match(/CORPO\s*:\s*([\s\S]*?)(?=\n\s*CTA\s*:|$)/i) || [])[1] || '';
+  const cta = (raw.match(/CTA\s*:\s*([\s\S]*)/i) || [])[1] || '';
+  return { gancho: gancho.trim(), corpo: corpo.trim(), cta: cta.trim() };
+}
+
+async function salvarRoteiroColado(itemId) {
+  const item = producaoItems.find(i => i.id === itemId);
+  const raw = document.getElementById(`ficha-resultado-${itemId}`).value.trim();
+
+  if (!raw) { showToast('Cola o roteiro que a IA devolveu antes de salvar.'); return; }
+
+  let { gancho, corpo, cta } = parseRoteiroColado(raw);
+  let semRotulos = false;
+  if (!gancho && !corpo) {
+    corpo = raw;
+    semRotulos = true;
+  }
+
+  item.gancho = gancho;
+  item.corpo = corpo;
+  item.cta = cta;
+  item.status = 'roteirizado';
+  await saveList('producao-items', producaoItems);
+  renderProdItens(item.estoqueId);
+  renderProdGrid();
+  renderFichaTecnicaConteudo(itemId);
+  showToast(semRotulos ? 'Salvo — não achei os rótulos GANCHO/CORPO/CTA, colei tudo em Corpo.' : 'Roteiro salvo.');
+}
+
+async function salvarEdicaoFicha(itemId) {
+  const item = producaoItems.find(i => i.id === itemId);
+  item.gancho = document.getElementById(`ficha-edit-gancho-${itemId}`).value.trim();
+  item.corpo = document.getElementById(`ficha-edit-corpo-${itemId}`).value.trim();
+  item.cta = document.getElementById(`edit-cta-ficha-${itemId}`).value.trim();
+  await saveList('producao-items', producaoItems);
+  renderProdItens(item.estoqueId);
+  showToast('Roteiro atualizado.');
+}
+
+function refazerRoteiro(itemId) {
+  const item = producaoItems.find(i => i.id === itemId);
+  item.gancho = ''; item.corpo = ''; item.cta = '';
+  renderFichaTecnicaConteudo(itemId);
+}
+
+function baixarRoteiroPdf(itemId) {
+  const item = producaoItems.find(i => i.id === itemId);
+  if (!item || !item.gancho) { showToast('Esse roteiro ainda não tem texto salvo.'); return; }
+
+  const refTopico = item.topicoIndex ? `T${item.topicoIndex}: ${item.topicoNome} · ` : '';
+  document.getElementById('pdf-preview-content').innerHTML = `
+    <p class="print-eyebrow">Caverna Vermelha · ${item.etapa}</p>
+    <p class="print-title">${item.tema}</p>
+    <p class="print-meta">${refTopico}${item.eixo} · ${item.formato}</p>
+    <p class="print-block-label">Gancho</p>
+    <p class="print-block-text">${item.gancho}</p>
+    <p class="print-block-label">Corpo</p>
+    <p class="print-block-text">${item.corpo || ''}</p>
+    <p class="print-block-label">CTA</p>
+    <p class="print-block-text">${item.cta || ''}</p>
+  `;
+  document.getElementById('pdf-preview-overlay').classList.add('show');
+}
+
+function fecharPreviewPdf() {
+  document.getElementById('pdf-preview-overlay').classList.remove('show');
+}
+
+function imprimirPreviewPdf() {
+  try {
+    window.print();
+  } catch (e) {
+    showToast('Não consegui abrir a impressão automaticamente — usa Ctrl+P com essa tela aberta.');
+  }
+}
+
+async function migrarCopiesParaProducao() {
+  let jaMigrado = false;
+  try { const r = await window.storage.get('migrated-copy-to-producao', false); jaMigrado = !!r; } catch (e) { /* nunca migrado */ }
+  if (jaMigrado) return;
+
+  let oldCopies = [];
+  try { oldCopies = await loadList('copy-entries'); } catch (e) { oldCopies = []; }
+
+  if (oldCopies.length) {
+    let mudouEstoques = false;
+    let mudouItens = false;
+
+    for (const c of oldCopies) {
+      if (!c.etapa) continue;
+      let item = null;
+
+      if (c.topicoIndex) {
+        item = producaoItems.find(p => p.etapa === c.etapa && p.topicoIndex === c.topicoIndex && !p.gancho);
+      }
+      if (!item) {
+        let estoqueAvulso = estoques.find(e => e.etapa === c.etapa && e.nome === 'Avulsos');
+        if (!estoqueAvulso) {
+          estoqueAvulso = { id: uid(), etapa: c.etapa, formato: c.formato || 'Reels', nome: 'Avulsos', criadoEm: new Date().toISOString() };
+          estoques.push(estoqueAvulso);
+          mudouEstoques = true;
+        }
+        const existentes = producaoItems.filter(p => p.estoqueId === estoqueAvulso.id);
+        item = {
+          id: uid(), estoqueId: estoqueAvulso.id, etapa: c.etapa, formato: c.formato || 'Reels',
+          ordem: existentes.length + 1, topicoIndex: c.topicoIndex || null, topicoNome: c.topicoNome || null,
+          eixo: c.eixo || '—', tema: c.tema || '(sem tema)', status: 'pendente', criadoEm: new Date().toISOString()
+        };
+        producaoItems.push(item);
+      }
+      item.gancho = c.gancho || '';
+      item.corpo = c.corpo || '';
+      item.cta = c.cta || '';
+      item.status = 'roteirizado';
+      mudouItens = true;
+    }
+
+    if (mudouEstoques) await saveList('estoques', estoques);
+    if (mudouItens) await saveList('producao-items', producaoItems);
+  }
+
+  try { await window.storage.set('migrated-copy-to-producao', 'true', false); } catch (e) { /* ignora */ }
+}
+
+// ---------- Resultados ----------
+let resEntries = [];
+
+async function salvarResultado() {
+  const nome = document.getElementById('res-nome').value.trim();
+  if (!nome) { showToast('Informa o nome do anúncio.'); return; }
+  resEntries.unshift({
+    id: uid(),
+    nome,
+    gasto: parseFloat(document.getElementById('res-gasto').value) || 0,
+    impressoes: parseInt(document.getElementById('res-impressoes').value) || 0,
+    cliques: parseInt(document.getElementById('res-cliques').value) || 0,
+    leads: parseInt(document.getElementById('res-leads').value) || 0,
+    data: document.getElementById('res-data').value
+  });
+  await saveList('resultados-entries', resEntries);
+  ['res-nome','res-gasto','res-impressoes','res-cliques','res-leads'].forEach(id => document.getElementById(id).value = '');
+  renderResultados();
+  showToast('Resultado registrado.');
+}
+
+async function excluirResultado(id) {
+  resEntries = resEntries.filter(r => r.id !== id);
+  await saveList('resultados-entries', resEntries);
+  renderResultados();
+}
+
+function renderResultados() {
+  const tbody = document.getElementById('res-tbody');
+  const empty = document.getElementById('res-empty');
+  const kpiRow = document.getElementById('kpi-row');
+
+  const totalGasto = resEntries.reduce((s, r) => s + r.gasto, 0);
+  const totalLeads = resEntries.reduce((s, r) => s + r.leads, 0);
+  const totalCliques = resEntries.reduce((s, r) => s + r.cliques, 0);
+  const totalImpressoes = resEntries.reduce((s, r) => s + r.impressoes, 0);
+  const custoPorLead = totalLeads ? (totalGasto / totalLeads) : 0;
+
+  kpiRow.innerHTML = `
+    <div class="kpi-card"><div class="kpi-num">R$ ${totalGasto.toFixed(0)}</div><div class="kpi-label">Investido</div></div>
+    <div class="kpi-card"><div class="kpi-num">${totalLeads}</div><div class="kpi-label">Leads gerados</div></div>
+    <div class="kpi-card"><div class="kpi-num">R$ ${custoPorLead.toFixed(2)}</div><div class="kpi-label">Custo por lead</div></div>
+    <div class="kpi-card"><div class="kpi-num">${totalImpressoes ? ((totalCliques/totalImpressoes)*100).toFixed(1) : '0'}%</div><div class="kpi-label">CTR médio</div></div>
+  `;
+
+  if (!resEntries.length) {
+    tbody.innerHTML = '';
+    document.getElementById('res-table').closest('.table-wrap').style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  document.getElementById('res-table').closest('.table-wrap').style.display = 'block';
+  empty.style.display = 'none';
+  tbody.innerHTML = resEntries.map(r => {
+    const cpl = r.leads ? (r.gasto / r.leads).toFixed(2) : '—';
+    const ctr = r.impressoes ? ((r.cliques / r.impressoes) * 100).toFixed(1) + '%' : '—';
+    return `
+    <tr>
+      <td style="color:var(--text-dark);font-weight:600;">${r.nome}</td>
+      <td>R$ ${r.gasto.toFixed(2)}</td>
+      <td>${r.impressoes}</td>
+      <td>${r.cliques}</td>
+      <td>${r.leads}</td>
+      <td>${cpl !== '—' ? 'R$ ' + cpl : '—'}</td>
+      <td>${ctr}</td>
+      <td><button class="btn-danger-ghost" onclick="excluirResultado('${r.id}')">Excluir</button></td>
+    </tr>
+  `;
+  }).join('');
+}
+
+// ---------- Init ----------
+(async function init() {
+  resEntries = await loadList('resultados-entries');
+  topicosAssunto = await loadList('topicos-assunto');
+  topicosPersona = await loadList('topicos-persona');
+  topicosConexao = await loadList('topicos-conexao');
+  estoques = await loadList('estoques');
+  producaoItems = await loadList('producao-items');
+  for (const etapa of ETAPAS_ORDEM) {
+    temasPorEtapa[etapa] = await loadList('temas-' + etapa);
+  }
+  await migrarCopiesParaProducao();
+  await loadCtas();
+  await loadFormatos();
+  renderResultados();
+  renderTopicos();
+  mostrarProdGrid();
+  renderMontagemCubo();
+  renderCtas();
+  renderFormatos();
+  renderModelos();
+})();
+</script>
+</body>
+</html>
